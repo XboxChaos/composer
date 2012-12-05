@@ -94,16 +94,15 @@ namespace Composer
 
             try
             {
+                // Just use the file's ID as its name for now
+                string fileName = file.ID.ToString("X8");
+
                 if (!convertFiles.Checked)
                 {
-                    // Just extract the file's raw contents
-                    SaveFileDialog sfd = new SaveFileDialog();
-                    sfd.Title = "Save Raw Data";
-                    sfd.Filter = "Binary Files|*.bin|All Files|*.*";
-                    sfd.DefaultExt = "bin";
-                    sfd.FileName = file.ID.ToString("X8") + ".bin";
-                    if (sfd.ShowDialog() == DialogResult.OK)
-                        ExtractRaw(file, sfd.FileName);
+                    // Extract the file's raw contents
+                    string extractPath = AskForDestinationFile("Save Raw Data", "Binary Files|*.bin|All Files|*.*", fileName, "bin");
+                    if (extractPath != null)
+                        ExtractRaw(file, extractPath);
                     return;
                 }
             
@@ -116,26 +115,18 @@ namespace Composer
                 {
                     case 0x166:
                         {
-                            SaveFileDialog sfd = new SaveFileDialog();
-                            sfd.Title = "Save WAV File";
-                            sfd.Filter = "WAV Files|*.wav";
-                            sfd.DefaultExt = "wav";
-                            sfd.FileName = file.ID.ToString("X8") + ".wav";
-                            if (sfd.ShowDialog() == DialogResult.Cancel)
+                            string extractPath = AskForDestinationFile("Save WAV File", "WAV Files|*.wav", fileName, "wav");
+                            if (extractPath == null)
                                 return;
-                            ExtractWAV(file, rifx, sfd.FileName);
+                            ExtractWAV(file, rifx, extractPath);
                         }
                         break;
                     case -1:
                         {
-                            SaveFileDialog sfd = new SaveFileDialog();
-                            sfd.Title = "Save OGG File";
-                            sfd.Filter = "OGG Files|*.ogg";
-                            sfd.DefaultExt = "ogg";
-                            sfd.FileName = file.ID.ToString("X8") + ".ogg";
-                            if (sfd.ShowDialog() == DialogResult.Cancel)
+                            string extractPath = AskForDestinationFile("Save OGG File", "OGG Files|*.ogg", fileName, "ogg");
+                            if (extractPath == null)
                                 return;
-                            ExtractOGG(file, sfd.FileName);
+                            ExtractOGG(file, extractPath);
                         }
                         break;
                     default:
@@ -163,6 +154,10 @@ namespace Composer
             MessageBox.Show("All files extracted successfully!", _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        /// <summary>
+        /// Shows a FolderBrowserDialog, prompting the user for a directory to extract a group of files to.
+        /// </summary>
+        /// <returns>The selected path if the user pressed OK or null otherwise.</returns>
         private string AskForExtractionFolder()
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -173,6 +168,29 @@ namespace Composer
             return fbd.SelectedPath;
         }
 
+        /// <summary>
+        /// Shows a SaveFileDialog, prompting the user to save a file with a certain extension.
+        /// </summary>
+        /// <param name="title">The title that should be shown in the dialog.</param>
+        /// <param name="filter">The filter string to use.</param>
+        /// <param name="baseName">The suggested name of the destination file, without the extension.</param>
+        /// <param name="extension">The file extension without a leading period.</param>
+        /// <returns>The selected path if the user pressed OK or null otherwise.</returns>
+        private string AskForDestinationFile(string title, string filter, string baseName, string extension)
+        {
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Title = title;
+            sfd.Filter = filter;
+            sfd.DefaultExt = extension;
+            sfd.FileName = baseName + "." + extension;
+            if (sfd.ShowDialog() == DialogResult.OK)
+                return sfd.FileName;
+            return null;
+        }
+
+        /// <summary>
+        /// Builds and displays the file TreeView.
+        /// </summary>
         private void BuildFileTree()
         {
             fileTree.Nodes.Clear();
@@ -194,6 +212,11 @@ namespace Composer
             }
         }
 
+        /// <summary>
+        /// Extracts all of the files in a folder to a directory.
+        /// </summary>
+        /// <param name="folder">The SoundPackFolder to extract files from.</param>
+        /// <param name="outPath">The path of the directory to store extracted files to.</param>
         private void ExtractFolder(SoundPackFolder folder, string outPath)
         {
             string folderPath = Path.Combine(outPath, folder.Name);
@@ -239,6 +262,11 @@ namespace Composer
             }
         }
 
+        /// <summary>
+        /// Extracts the raw contents of a SoundPackFile to a file.
+        /// </summary>
+        /// <param name="file">The SoundPackFile to extract.</param>
+        /// <param name="outPath">The path of the file to save to.</param>
         private void ExtractRaw(SoundPackFile file, string outPath)
         {
             using (EndianWriter output = new EndianWriter(File.OpenWrite(outPath), Endian.BigEndian))
@@ -249,6 +277,12 @@ namespace Composer
             }
         }
 
+        /// <summary>
+        /// Extracts a SoundPackFile and converts it to a WAV.
+        /// </summary>
+        /// <param name="file">The SoundPackFile to extract. It must be in XMA format.</param>
+        /// <param name="rifx">The RIFX data for the SoundPackFile.</param>
+        /// <param name="outPath">The path of the file to save to.</param>
         private void ExtractWAV(SoundPackFile file, RIFX rifx, string outPath)
         {
             // Create a temporary file to write an XMA to
@@ -310,6 +344,11 @@ namespace Composer
             }
         }
 
+        /// <summary>
+        /// Extracts a SoundPackFile and converts it to an OGG.
+        /// </summary>
+        /// <param name="file">The SoundPackFile to extract. It must be in WWISE OGG format.</param>
+        /// <param name="outPath">The path of the file to save to.</param>
         private void ExtractOGG(SoundPackFile file, string outPath)
         {
             // Just extract the RIFX to a temporary file
@@ -339,6 +378,12 @@ namespace Composer
             }
         }
 
+        /// <summary>
+        /// Silently executes a program and waits for it to finish.
+        /// </summary>
+        /// <param name="path">The path to the program to execute.</param>
+        /// <param name="arguments">Command-line arguments to pass to the program.</param>
+        /// <param name="workingDirectory">The working directory to run in the program in.</param>
         private void RunProgramSilently(string path, string arguments, string workingDirectory)
         {
             ProcessStartInfo info = new ProcessStartInfo(path, arguments);
