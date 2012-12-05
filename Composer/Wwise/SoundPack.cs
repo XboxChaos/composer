@@ -12,6 +12,7 @@ namespace Composer.Wwise
         private int _folderListSize;
         private Dictionary<int, SoundPackFolder> _foldersById = new Dictionary<int, SoundPackFolder>(); // Maps folder IDs to their objects
         private Dictionary<uint, SoundPackFile> _filesById = new Dictionary<uint, SoundPackFile>();
+        private WwiseObjectCollection _objects = new WwiseObjectCollection();
 
         const uint HeaderMagic = 0x414B504B; // 'AKPK'
         const int FolderListStart = 0x1C; // File offset of the folder list
@@ -43,7 +44,7 @@ namespace Composer.Wwise
         /// <summary>
         /// Finds a file in the pack by ID.
         /// </summary>
-        /// <param name="id">The file's ID number.</param>
+        /// <param name="id">The ID of the file to find.</param>
         /// <returns>The SoundPackFile if found, or null otherwise.</returns>
         public SoundPackFile FindFileByID(uint id)
         {
@@ -59,6 +60,14 @@ namespace Composer.Wwise
         public IEnumerable<SoundPackFolder> Folders
         {
             get { return _foldersById.Values; }
+        }
+
+        /// <summary>
+        /// The Wwise objects stored in the sound pack.
+        /// </summary>
+        public WwiseObjectCollection Objects
+        {
+            get { return _objects; }
         }
 
         private void ReadHeader(EndianReader reader)
@@ -123,10 +132,15 @@ namespace Composer.Wwise
             for (int i = 0; i < fileCount; i++)
             {
                 SoundPackFile file = new SoundPackFile(reader);
+
+                // Put the file into its parent folder
                 SoundPackFolder folder = FindFolderByID(file.FolderID);
                 if (folder != null)
                     folder.AddFile(file);
+
+                // Associate its ID
                 _filesById[file.ID] = file;
+                _objects.Add(file);
             }
         }
     }

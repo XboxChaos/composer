@@ -11,6 +11,10 @@ namespace Composer.Wwise
     {
         private int _totalSize;
 
+        /// <summary>
+        /// Loads RIFX data from a stream.
+        /// </summary>
+        /// <param name="reader">The EndianReader to read from.</param>
         public RIFX(EndianReader reader)
         {
             ReadHeader(reader);

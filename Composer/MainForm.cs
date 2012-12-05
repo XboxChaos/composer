@@ -20,6 +20,7 @@ namespace Composer
         private EndianReader _packReader = null;
         private SoundPack _currentPack = null;
         private IDLookup _soundNames = null;
+        private WwiseObjectCollection _wwiseObjects = new WwiseObjectCollection();
 
         public MainForm()
         {
