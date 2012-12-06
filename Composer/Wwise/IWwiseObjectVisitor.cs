@@ -14,5 +14,6 @@ namespace Composer.Wwise
         void Visit(SoundPackFile file);
         void Visit(SoundBankVoice voice);
         void Visit(SoundBankAction action);
+        void Visit(SoundBankEvent ev);
     }
 }

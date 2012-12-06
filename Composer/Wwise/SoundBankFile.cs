@@ -11,19 +11,26 @@ namespace Composer.Wwise
     /// </summary>
     public class SoundBankFile : IWwiseObject
     {
-        public SoundBankFile(uint id, int offset, int size)
+        public SoundBankFile(SoundBank parent, uint id, int offset, int size)
         {
+            ParentBank = parent;
             ID = id;
             Offset = offset;
             Size = size;
         }
 
-        public SoundBankFile(IReader reader)
+        public SoundBankFile(SoundBank parent, IReader reader)
         {
+            ParentBank = parent;
             ID = reader.ReadUInt32();
             Offset = reader.ReadInt32();
             Size = reader.ReadInt32();
         }
+
+        /// <summary>
+        /// The SoundBank that the file belongs to.
+        /// </summary>
+        public SoundBank ParentBank { get; private set; }
 
         /// <summary>
         /// The file's ID.

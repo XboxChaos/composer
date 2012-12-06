@@ -12,6 +12,7 @@ namespace Composer.Wwise
     public class SoundBank
     {
         private Dictionary<uint, SoundBankFile> _filesById = new Dictionary<uint, SoundBankFile>();
+        private Dictionary<uint, SoundBankEvent> _eventsById = new Dictionary<uint, SoundBankEvent>();
         private WwiseObjectCollection _objects = new WwiseObjectCollection();
 
         /// <summary>
@@ -47,6 +48,24 @@ namespace Composer.Wwise
         }
 
         /// <summary>
+        /// Finds an event in the sound bank by ID.
+        /// </summary>
+        /// <param name="id">The ID of the event to find.</param>
+        /// <returns>The SoundBankEvent if found, or null otherwise.</returns>
+        public SoundBankEvent FindEventById(uint id)
+        {
+            SoundBankEvent result;
+            if (_eventsById.TryGetValue(id, out result))
+                return result;
+            return null;
+        }
+
+        /// <summary>
+        /// The sound bank's ID.
+        /// </summary>
+        public uint ID { get; private set; }
+
+        /// <summary>
         /// The offset of the data area from the start of the sound bank.
         /// Add this to a SoundBankFile's Offset to get its offset within the bank.
         /// </summary>
@@ -61,6 +80,14 @@ namespace Composer.Wwise
         }
 
         /// <summary>
+        /// The events in the sound bank, not stored in any particular order.
+        /// </summary>
+        public IEnumerable<SoundBankEvent> Events
+        {
+            get { return _eventsById.Values; }
+        }
+
+        /// <summary>
         /// The Wwise objects stored in the sound bank.
         /// </summary>
         public WwiseObjectCollection Objects
@@ -72,8 +99,9 @@ namespace Composer.Wwise
         {
             Endian defaultEndian = reader.Endianness;
 
-            long offset = reader.Position;
-            long endOffset = offset + fileSize;
+            long startOffset = reader.Position;
+            long endOffset = startOffset + fileSize;
+            long offset = startOffset;
             while (offset < endOffset)
             {
                 // Read the block header
@@ -88,13 +116,17 @@ namespace Composer.Wwise
                 // Process the block based upon its magic value
                 switch (blockMagic)
                 {
+                    case BlockMagic.BKHD:
+                        ReadHeader(reader);
+                        break;
+
                     case BlockMagic.DIDX:
                         ReadFiles(reader, blockSize);
                         break;
 
                     case BlockMagic.DATA:
                         // Just store the offset of this block's contents to the DataOffset field
-                        DataOffset = (int)offset;
+                        DataOffset = (int)(offset - startOffset);
                         break;
 
                     case BlockMagic.HIRC:
@@ -108,6 +140,12 @@ namespace Composer.Wwise
             }
         }
 
+        private void ReadHeader(EndianReader reader)
+        {
+            reader.Skip(4);
+            ID = reader.ReadUInt32();
+        }
+
         private void ReadFiles(EndianReader reader, long blockSize)
         {
             long offset = reader.Position;
@@ -115,7 +153,7 @@ namespace Composer.Wwise
             while (offset < endOffset)
             {
                 // TODO: should we just read the file values here instead of in the SoundBankFile constructor?
-                SoundBankFile file = new SoundBankFile(reader);
+                SoundBankFile file = new SoundBankFile(this, reader);
                 offset += 0xC; // Each file entry is 0xC bytes long
 
                 _filesById[file.ID] = file;
@@ -148,6 +186,12 @@ namespace Composer.Wwise
 
                     case ObjectType.Action:
                         obj = new SoundBankAction(reader, id);
+                        break;
+
+                    case ObjectType.Event:
+                        SoundBankEvent ev = new SoundBankEvent(reader, id);
+                        _eventsById[ev.ID] = ev;
+                        obj = ev;
                         break;
                 }
 

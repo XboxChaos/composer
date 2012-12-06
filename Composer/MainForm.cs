@@ -17,10 +17,21 @@ namespace Composer
     public partial class MainForm : Form
     {
         private string _defaultTitle;
-        private EndianReader _packReader = null;
-        private SoundPack _currentPack = null;
-        private IDLookup _soundNames = null;
+        private EndianReader _soundbankReader = null;
+        private EndianReader _soundstreamReader = null;
+        private SoundPack _soundbankPack = null;
+        private SoundPack _soundstreamPack = null;
+        private NameLookup _soundNames = null;
         private WwiseObjectCollection _wwiseObjects = new WwiseObjectCollection();
+        private TreeViewBuilder _treeBuilder = null;
+
+        private class SoundFileInfo
+        {
+            public EndianReader Reader;
+            public int Offset;
+            public int Size;
+            public uint ID;
+        }
 
         public MainForm()
         {
@@ -30,25 +41,29 @@ namespace Composer
             _soundNames = INILookupLoader.LoadFromFile("soundnames.txt");
         }
 
-        private void openPck_Click(object sender, EventArgs e)
+        private void openSoundbank_Click(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Title = "Open Sound Pack";
-            ofd.Filter = "Sound Packs|*.pck|All Files|*.*";
-            if (ofd.ShowDialog() == DialogResult.OK)
+            string path = AskForPackFile("soundbank.pck");
+            if (path != null)
+                LoadPackFile(path, soundbankPath, ref _soundbankReader, ref _soundbankPack);
+        }
+
+        private void openSoundstream_Click(object sender, EventArgs e)
+        {
+            string path = AskForPackFile("soundstream.pck");
+            if (path != null)
+                LoadPackFile(path, soundstreamPath, ref _soundstreamReader, ref _soundstreamPack);
+        }
+
+        private void loadFromFolder_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = "Select the folder to load soundbank.pck and soundstream.pck from.";
+            fbd.ShowNewFolderButton = false;
+            if (fbd.ShowDialog() == DialogResult.OK)
             {
-                if (_packReader != null)
-                    _packReader.Close();
-
-                pckPath.Text = ofd.FileName;
-                _packReader = new EndianReader(File.OpenRead(ofd.FileName), Endian.BigEndian);
-                _currentPack = new SoundPack(_packReader);
-
-                BuildFileTree();
-
-                controls.Enabled = true;
-
-                Text = _defaultTitle + " - " + Path.GetFileName(ofd.FileName);
+                LoadPackFile(Path.Combine(fbd.SelectedPath, "soundbank.pck"), soundbankPath, ref _soundbankReader, ref _soundbankPack);
+                LoadPackFile(Path.Combine(fbd.SelectedPath, "soundstream.pck"), soundstreamPath, ref _soundstreamReader, ref _soundstreamPack);
             }
         }
 
@@ -59,7 +74,7 @@ namespace Composer
                 extractFile.Text = "Extract Selected Folder...";
                 extractFile.Enabled = true;
             }
-            else if (e.Node != null && e.Node.Tag is SoundPackFile)
+            else if (e.Node != null && e.Node.Tag is SoundFileInfo)
             {
                 extractFile.Text = "Extract Selected File...";
                 extractFile.Enabled = true;
@@ -76,7 +91,7 @@ namespace Composer
             if (fileTree.SelectedNode == null)
                 return;
 
-            SoundPackFolder folder = fileTree.SelectedNode.Tag as SoundPackFolder;
+            /*SoundPackFolder folder = fileTree.SelectedNode.Tag as SoundPackFolder;
             if (folder != null)
             {
                 // Extract the folder
@@ -87,29 +102,28 @@ namespace Composer
                     MessageBox.Show("Folder extracted successfully!", _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 return;
-            }
+            }*/
 
-            SoundPackFile file = fileTree.SelectedNode.Tag as SoundPackFile;
-            if (file == null)
+            SoundFileInfo info = fileTree.SelectedNode.Tag as SoundFileInfo;
+            if (info == null)
                 return;
 
             try
             {
-                // Just use the file's ID as its name for now
-                string fileName = file.ID.ToString("X8");
+                string fileName = fileTree.SelectedNode.Text;
 
                 if (!convertFiles.Checked)
                 {
                     // Extract the file's raw contents
                     string extractPath = AskForDestinationFile("Save Raw Data", "Binary Files|*.bin|All Files|*.*", fileName, "bin");
                     if (extractPath != null)
-                        ExtractRaw(file, extractPath);
+                        ExtractRaw(info.Reader, info.Offset, info.Size, extractPath);
                     return;
                 }
             
                 // Read the RIFX data
-                _packReader.SeekTo(file.Offset);
-                RIFX rifx = new RIFX(_packReader);
+                info.Reader.SeekTo(info.Offset);
+                RIFX rifx = new RIFX(info.Reader);
 
                 // Choose the output format based upon its codec
                 switch (rifx.Codec)
@@ -119,7 +133,7 @@ namespace Composer
                             string extractPath = AskForDestinationFile("Save WAV File", "WAV Files|*.wav", fileName, "wav");
                             if (extractPath == null)
                                 return;
-                            ExtractWAV(file, rifx, extractPath);
+                            ExtractWAV(info.Reader, info.Offset, rifx, extractPath);
                         }
                         break;
                     case -1:
@@ -127,7 +141,7 @@ namespace Composer
                             string extractPath = AskForDestinationFile("Save OGG File", "OGG Files|*.ogg", fileName, "ogg");
                             if (extractPath == null)
                                 return;
-                            ExtractOGG(file, extractPath);
+                            ExtractOGG(info.Reader, info.Offset, info.Size, extractPath);
                         }
                         break;
                     default:
@@ -149,10 +163,20 @@ namespace Composer
             if (outPath == null)
                 return;
 
-            foreach (SoundPackFolder folder in _currentPack.Folders)
-                ExtractFolder(folder, outPath);
+            /*foreach (SoundPackFolder folder in _soundbankPack.Folders)
+                ExtractFolder(folder, outPath);*/
 
-            MessageBox.Show("All files extracted successfully!", _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("BROKEN: FIX!"/*"All files extracted successfully!"*/, _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private string AskForPackFile(string name)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Title = "Open " + name;
+            ofd.Filter = "Sound Packs|*.pck|All Files|*.*";
+            if (ofd.ShowDialog() == DialogResult.OK)
+                return ofd.FileName;
+            return null;
         }
 
         /// <summary>
@@ -189,26 +213,151 @@ namespace Composer
             return null;
         }
 
+        private void LoadPackFile(string path, TextBox pathBox, ref EndianReader reader, ref SoundPack pack)
+        {
+            if (reader != null)
+                reader.Close();
+
+            // Load the sound pack
+            reader = new EndianReader(File.OpenRead(path), Endian.BigEndian);
+            pack = new SoundPack(reader);
+            pathBox.Text = path;
+
+            if (_soundbankPack != null && _soundstreamPack != null)
+            {
+                // Soundbank and soundstream have both been loaded - display the sound tree
+                BuildFileTree();
+                controls.Enabled = true;
+            }
+        }
+
         /// <summary>
         /// Builds and displays the file TreeView.
         /// </summary>
         private void BuildFileTree()
         {
+            _treeBuilder = new TreeViewBuilder(fileTree.Nodes);
+            
+            SoundScanner scanner = new SoundScanner();
+            scanner.FoundSoundBankFile += FoundSoundBankFile;
+            scanner.FoundSoundPackFile += FoundSoundPackFile;
+
+            // Load everything from the packs into the scanner
+            LoadObjects(_soundbankPack, _soundbankReader, scanner);
+            LoadObjects(_soundstreamPack, _soundstreamReader, scanner);
+
+            // Clear the TreeView and scan everything
+            // The event handlers attached above are responsible for adding nodes to the tree
             fileTree.Nodes.Clear();
+            scanner.ScanAll();
+        }
 
-            TreeViewBuilder builder = new TreeViewBuilder(fileTree.Nodes);
-            foreach (SoundPackFolder folder in _currentPack.Folders)
+        /// <summary>
+        /// Event handler for the SoundScanner.FoundSoundBankFile event.
+        /// </summary>
+        private void FoundSoundBankFile(object sender, SoundFileEventArgs<SoundBankFile> e)
+        {
+            // Find the sound bank's pack file so we can determine the offset of the audio data
+            uint bankId = e.File.ParentBank.ID;
+            SoundPackFile packFile = _soundbankPack.FindFileByID(bankId);
+            if (packFile == null)
+                return;
+
+            // Calculate the offset of the audio data
+            int offset = packFile.Offset + e.File.ParentBank.DataOffset + e.File.Offset;
+
+            // Create information to tag the tree node with
+            SoundFileInfo info = new SoundFileInfo
             {
-                string pathBase = folder.Name + '/';
+                Reader = _soundbankReader,
+                Offset = offset,
+                Size = e.File.Size,
+                ID = e.File.ID
+            };
 
+            // Add it to the tree
+            AddSoundNode(e.SourceEvent, info);
+        }
+
+        /// <summary>
+        /// Event handler for the SoundScanner.FoundSoundPackFile event.
+        /// </summary>
+        private void FoundSoundPackFile(object sender, SoundFileEventArgs<SoundPackFile> e)
+        {
+            // Make sure the file isn't in soundbank for some reason
+            EndianReader reader = _soundstreamReader;
+            if (_soundbankPack.FindFileByID(e.File.ID) != null)
+                reader = _soundbankReader;
+
+            // Create information to tag the tree node with
+            SoundFileInfo info = new SoundFileInfo
+            {
+                Reader = reader,
+                Offset = e.File.Offset,
+                Size = e.File.Size,
+                ID = e.File.ID
+            };
+
+            // Add it to the tree
+            AddSoundNode(e.SourceEvent, info);
+        }
+
+        private void AddSoundNode(SoundBankEvent sourceEvent, SoundFileInfo info)
+        {
+            // Determine the name of the sound based upon its source event
+            string name = _soundNames.FindName(sourceEvent.ID);
+            if (name == null)
+                name = "unknown/" + info.ID.ToString("X8");
+
+            TreeNode oldNode = _treeBuilder.GetNode(name);
+            if (oldNode != null)
+            {
+                SoundFileInfo oldInfo = oldNode.Tag as SoundFileInfo;
+                if (oldInfo != null)
+                {
+                    if (oldInfo.ID == info.ID)
+                        return;
+
+                    // A different node with the path already exists
+                    // Untag it, make it a folder, and add it as a child for the old node instead
+                    oldNode.Tag = null;
+                    oldNode.ImageIndex = 0;
+                    oldNode.SelectedImageIndex = 0;
+
+                    TreeNode child = new TreeNode(oldInfo.ID.ToString("X8"), 1, 1);
+                    child.Tag = oldInfo;
+                    oldNode.Nodes.Add(child);
+                }
+
+                // Add us as a child of the node
+                name += "/" + info.ID.ToString("X8");
+            }
+
+            // Add the sound to the tree
+            _treeBuilder.AddNode(name, 1, info);
+        }
+
+        private void LoadObjects(SoundPack pack, EndianReader reader, SoundScanner scanner)
+        {
+            foreach (SoundPackFolder folder in pack.Folders)
+            {
                 foreach (SoundPackFile file in folder.Files)
                 {
-                    string fileName = _soundNames.FindName(file.ID);
-                    if (fileName == null)
-                        fileName = file.ID.ToString("X8");
-                    fileName = fileName.Trim('/', '\\');
+                    reader.SeekTo(file.Offset);
+                    int magic = reader.ReadInt32();
 
-                    builder.AddNode(pathBase + fileName, 1, file);
+                    switch (magic)
+                    {
+                        case 0x52494658: // RIFX
+                            scanner.RegisterObject(file);
+                            break;
+
+                        case 0x424B4844: // BKHD
+                            reader.SeekTo(file.Offset);
+                            SoundBank bank = new SoundBank(reader, file.Size);
+                            scanner.RegisterSoundBank(bank);
+                            break;
+                    }
                 }
             }
         }
@@ -218,7 +367,7 @@ namespace Composer
         /// </summary>
         /// <param name="folder">The SoundPackFolder to extract files from.</param>
         /// <param name="outPath">The path of the directory to store extracted files to.</param>
-        private void ExtractFolder(SoundPackFolder folder, string outPath)
+        /*private void ExtractFolder(SoundPackFolder folder, string outPath)
         {
             string folderPath = Path.Combine(outPath, folder.Name);
             Directory.CreateDirectory(folderPath);
@@ -238,8 +387,8 @@ namespace Composer
                     else
                     {
                         // Read the RIFX data
-                        _packReader.SeekTo(file.Offset);
-                        RIFX rifx = new RIFX(_packReader);
+                        _soundbankReader.SeekTo(file.Offset);
+                        RIFX rifx = new RIFX(_soundbankReader);
 
                         // Choose the output format based upon its codec
                         switch (rifx.Codec)
@@ -250,9 +399,6 @@ namespace Composer
                             case -1: // WWISE OGG
                                 ExtractOGG(file, pathBase + ".ogg");
                                 break;
-                            /*default:
-                                MessageBox.Show("Unsupported codec 0x" + ((ushort)rifx.Codec).ToString("X4"), _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                return;*/
                         }
                     }
                 }
@@ -261,30 +407,33 @@ namespace Composer
                     // TODO: Show a status message or something
                 }
             }
-        }
+        }*/
 
         /// <summary>
-        /// Extracts the raw contents of a SoundPackFile to a file.
+        /// Extracts the raw contents of a sound to a file.
         /// </summary>
-        /// <param name="file">The SoundPackFile to extract.</param>
+        /// <param name="reader">The stream to read from.</param>
+        /// <param name="offset">The offset of the data to extract.</param>
+        /// <param name="size">The size of the data to extract.</param>
         /// <param name="outPath">The path of the file to save to.</param>
-        private void ExtractRaw(SoundPackFile file, string outPath)
+        private void ExtractRaw(IReader reader, int offset, int size, string outPath)
         {
             using (EndianWriter output = new EndianWriter(File.OpenWrite(outPath), Endian.BigEndian))
             {
                 // Just copy the data over to the output stream
-                _packReader.SeekTo(file.Offset);
-                StreamUtil.Copy(_packReader, output, file.Size);
+                reader.SeekTo(offset);
+                StreamUtil.Copy(reader, output, size);
             }
         }
 
         /// <summary>
-        /// Extracts a SoundPackFile and converts it to a WAV.
+        /// Extracts a sound and converts it to a WAV.
         /// </summary>
-        /// <param name="file">The SoundPackFile to extract. It must be in XMA format.</param>
+        /// <param name="reader">The stream to read from.</param>
+        /// <param name="offset">The offset of the data to extract.</param>
         /// <param name="rifx">The RIFX data for the SoundPackFile.</param>
         /// <param name="outPath">The path of the file to save to.</param>
-        private void ExtractWAV(SoundPackFile file, RIFX rifx, string outPath)
+        private void ExtractWAV(IReader reader, int offset, RIFX rifx, string outPath)
         {
             // Create a temporary file to write an XMA to
             string tempFile = Path.GetTempFileName() + ".xma";
@@ -327,8 +476,8 @@ namespace Composer
                     output.WriteInt32(rifx.DataSize);
 
                     // Copy the data chunk contents from the original RIFX
-                    _packReader.SeekTo(file.Offset + rifx.DataOffset);
-                    StreamUtil.Copy(_packReader, output, rifx.DataSize);
+                    reader.SeekTo(offset + rifx.DataOffset);
+                    StreamUtil.Copy(reader, output, rifx.DataSize);
                 }
 
                 // Convert it with towav
@@ -346,11 +495,13 @@ namespace Composer
         }
 
         /// <summary>
-        /// Extracts a SoundPackFile and converts it to an OGG.
+        /// Extracts a sound and converts it to an OGG.
         /// </summary>
-        /// <param name="file">The SoundPackFile to extract. It must be in WWISE OGG format.</param>
+        /// <param name="reader">The stream to read from.</param>
+        /// <param name="offset">The offset of the data to extract.</param>
+        /// <param name="size">The size of the data to extract.</param>
         /// <param name="outPath">The path of the file to save to.</param>
-        private void ExtractOGG(SoundPackFile file, string outPath)
+        private void ExtractOGG(IReader reader, int offset, int size, string outPath)
         {
             // Just extract the RIFX to a temporary file
             string tempFile = Path.GetTempFileName() + ".wav";
@@ -359,8 +510,8 @@ namespace Composer
             {
                 using (EndianWriter output = new EndianWriter(File.OpenWrite(tempFile), Endian.BigEndian))
                 {
-                    _packReader.SeekTo(file.Offset);
-                    StreamUtil.Copy(_packReader, output, file.Size);
+                    reader.SeekTo(offset);
+                    StreamUtil.Copy(reader, output, size);
                 }
 
                 // Run ww2ogg to convert the resulting RIFX to an OGG

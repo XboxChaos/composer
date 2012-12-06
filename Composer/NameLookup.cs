@@ -8,9 +8,9 @@ using System.Globalization;
 namespace Composer
 {
     /// <summary>
-    /// Holds a collection of IDs which can be translated to names
+    /// Holds a collection of IDs which can be translated to names.
     /// </summary>
-    public class IDLookup
+    public class NameLookup
     {
         private Dictionary<uint, string> _lookup = new Dictionary<uint, string>();
 

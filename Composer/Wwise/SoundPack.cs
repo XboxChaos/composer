@@ -131,7 +131,7 @@ namespace Composer.Wwise
             // Read each file and sort it into its folder
             for (int i = 0; i < fileCount; i++)
             {
-                SoundPackFile file = new SoundPackFile(reader);
+                SoundPackFile file = new SoundPackFile(this, reader);
 
                 // Put the file into its parent folder
                 SoundPackFolder folder = FindFolderByID(file.FolderID);

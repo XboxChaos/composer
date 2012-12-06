@@ -19,9 +19,9 @@ namespace Composer
         /// </summary>
         /// <param name="reader">The TextReader to read from.</param>
         /// <returns>The IDLookup that was created.</returns>
-        public static IDLookup Load(TextReader reader)
+        public static NameLookup Load(TextReader reader)
         {
-            IDLookup result = new IDLookup();
+            NameLookup result = new NameLookup();
 
             // Adapted from INITagList in Liberty, lul
             string line;
@@ -73,7 +73,7 @@ namespace Composer
         /// </summary>
         /// <param name="directoryPath">The directoryPath to the text file to read.</param>
         /// <returns>The IDLookup that was created.</returns>
-        public static IDLookup LoadFromFile(string path)
+        public static NameLookup LoadFromFile(string path)
         {
             using (StreamReader reader = new StreamReader(path))
                 return Load(reader);

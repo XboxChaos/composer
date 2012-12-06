@@ -32,9 +32,7 @@ namespace Composer
         /// <param name="tag">The object to set the node's Tag to.</param>
         public void AddNode(string path, int image, object tag)
         {
-            // Split the path into its components
-            path = path.Trim('/', '\\');
-            string[] pathComponents = path.Split('/', '\\');
+            string[] pathComponents = SplitPath(path);
 
             // Create a node for each component in the path
             TreeNodeCollection nodeList = _nodes;
@@ -43,18 +41,11 @@ namespace Composer
                 string component = pathComponents[i];
 
                 // Only create a new node if a node doesn't already exist for the component
-                TreeNode node = null;
-                foreach (TreeNode child in nodeList)
-                {
-                    if (child.Text == component)
-                    {
-                        node = child;
-                        break;
-                    }
-                }
+                TreeNode node = FindChild(nodeList, component);
                 if (node == null)
                 {
                     node = new TreeNode(component);
+                    node.Name = component;
                     nodeList.Add(node);
 
                     // If this is the last path component, tag it and set its image
@@ -67,6 +58,46 @@ namespace Composer
                 }
                 nodeList = node.Nodes;
             }
+        }
+
+        /// <summary>
+        /// Gets the TreeNode corresponding to a given path.
+        /// </summary>
+        /// <param name="path">The path of the node to retrieve.</param>
+        /// <returns>The TreeNode if found, or null otherwise.</returns>
+        public TreeNode GetNode(string path)
+        {
+            string[] pathComponents = SplitPath(path);
+
+            // Traverse the tree, finding the node with the given name each time
+            TreeNodeCollection nodeList = _nodes;
+            TreeNode result = null;
+            foreach (string component in pathComponents)
+            {
+                result = FindChild(nodeList, component);
+                if (result == null)
+                    return null; // The node with the given path doesn't exist
+
+                nodeList = result.Nodes;
+            }
+            return result;
+        }
+
+        private string[] SplitPath(string path)
+        {
+            path = path.Trim('/', '\\');
+            return path.Split('/', '\\');
+        }
+
+        private TreeNode FindChild(TreeNodeCollection nodes, string text)
+        {
+            // This is actually faster than TreeNodeCollection.Find()
+            foreach (TreeNode child in nodes)
+            {
+                if (child.Text == text)
+                    return child;
+            }
+            return null;
         }
     }
 }

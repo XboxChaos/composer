@@ -30,36 +30,39 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.openPck = new System.Windows.Forms.Button();
-            this.pckPath = new System.Windows.Forms.TextBox();
+            this.openSoundbank = new System.Windows.Forms.Button();
+            this.soundbankPath = new System.Windows.Forms.TextBox();
             this.fileTree = new System.Windows.Forms.TreeView();
+            this.nodeImages = new System.Windows.Forms.ImageList(this.components);
             this.extractFile = new System.Windows.Forms.Button();
             this.extractAll = new System.Windows.Forms.Button();
             this.convertFiles = new System.Windows.Forms.CheckBox();
             this.controls = new System.Windows.Forms.Panel();
-            this.nodeImages = new System.Windows.Forms.ImageList(this.components);
+            this.openSoundstream = new System.Windows.Forms.Button();
+            this.soundstreamPath = new System.Windows.Forms.TextBox();
+            this.loadFromFolder = new System.Windows.Forms.Button();
             this.controls.SuspendLayout();
             this.SuspendLayout();
             // 
-            // openPck
+            // openSoundbank
             // 
-            this.openPck.Location = new System.Drawing.Point(12, 12);
-            this.openPck.Name = "openPck";
-            this.openPck.Size = new System.Drawing.Size(124, 23);
-            this.openPck.TabIndex = 2;
-            this.openPck.Text = "Open .pck File...";
-            this.openPck.UseVisualStyleBackColor = true;
-            this.openPck.Click += new System.EventHandler(this.openPck_Click);
+            this.openSoundbank.Location = new System.Drawing.Point(12, 41);
+            this.openSoundbank.Name = "openSoundbank";
+            this.openSoundbank.Size = new System.Drawing.Size(149, 23);
+            this.openSoundbank.TabIndex = 2;
+            this.openSoundbank.Text = "Open soundbank.pck...";
+            this.openSoundbank.UseVisualStyleBackColor = true;
+            this.openSoundbank.Click += new System.EventHandler(this.openSoundbank_Click);
             // 
-            // pckPath
+            // soundbankPath
             // 
-            this.pckPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.soundbankPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pckPath.Location = new System.Drawing.Point(142, 14);
-            this.pckPath.Name = "pckPath";
-            this.pckPath.ReadOnly = true;
-            this.pckPath.Size = new System.Drawing.Size(394, 20);
-            this.pckPath.TabIndex = 3;
+            this.soundbankPath.Location = new System.Drawing.Point(167, 43);
+            this.soundbankPath.Name = "soundbankPath";
+            this.soundbankPath.ReadOnly = true;
+            this.soundbankPath.Size = new System.Drawing.Size(369, 20);
+            this.soundbankPath.TabIndex = 3;
             // 
             // fileTree
             // 
@@ -72,15 +75,22 @@
             this.fileTree.Location = new System.Drawing.Point(0, 0);
             this.fileTree.Name = "fileTree";
             this.fileTree.SelectedImageIndex = 0;
-            this.fileTree.Size = new System.Drawing.Size(524, 285);
+            this.fileTree.Size = new System.Drawing.Size(524, 257);
             this.fileTree.TabIndex = 4;
             this.fileTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.fileTree_AfterSelect);
+            // 
+            // nodeImages
+            // 
+            this.nodeImages.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("nodeImages.ImageStream")));
+            this.nodeImages.TransparentColor = System.Drawing.Color.Transparent;
+            this.nodeImages.Images.SetKeyName(0, "folder.png");
+            this.nodeImages.Images.SetKeyName(1, "sound.png");
             // 
             // extractFile
             // 
             this.extractFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.extractFile.Enabled = false;
-            this.extractFile.Location = new System.Drawing.Point(0, 291);
+            this.extractFile.Location = new System.Drawing.Point(0, 263);
             this.extractFile.Name = "extractFile";
             this.extractFile.Size = new System.Drawing.Size(149, 23);
             this.extractFile.TabIndex = 5;
@@ -91,7 +101,7 @@
             // extractAll
             // 
             this.extractAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.extractAll.Location = new System.Drawing.Point(155, 291);
+            this.extractAll.Location = new System.Drawing.Point(155, 263);
             this.extractAll.Name = "extractAll";
             this.extractAll.Size = new System.Drawing.Size(149, 23);
             this.extractAll.TabIndex = 6;
@@ -105,7 +115,7 @@
             this.convertFiles.AutoSize = true;
             this.convertFiles.Checked = true;
             this.convertFiles.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.convertFiles.Location = new System.Drawing.Point(367, 295);
+            this.convertFiles.Location = new System.Drawing.Point(367, 267);
             this.convertFiles.Margin = new System.Windows.Forms.Padding(0);
             this.convertFiles.Name = "convertFiles";
             this.convertFiles.Size = new System.Drawing.Size(157, 17);
@@ -123,29 +133,57 @@
             this.controls.Controls.Add(this.extractFile);
             this.controls.Controls.Add(this.fileTree);
             this.controls.Enabled = false;
-            this.controls.Location = new System.Drawing.Point(12, 41);
+            this.controls.Location = new System.Drawing.Point(12, 99);
             this.controls.Name = "controls";
-            this.controls.Size = new System.Drawing.Size(524, 314);
+            this.controls.Size = new System.Drawing.Size(524, 286);
             this.controls.TabIndex = 8;
             // 
-            // nodeImages
+            // openSoundstream
             // 
-            this.nodeImages.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("nodeImages.ImageStream")));
-            this.nodeImages.TransparentColor = System.Drawing.Color.Transparent;
-            this.nodeImages.Images.SetKeyName(0, "folder.png");
-            this.nodeImages.Images.SetKeyName(1, "sound.png");
+            this.openSoundstream.Location = new System.Drawing.Point(12, 70);
+            this.openSoundstream.Name = "openSoundstream";
+            this.openSoundstream.Size = new System.Drawing.Size(149, 23);
+            this.openSoundstream.TabIndex = 9;
+            this.openSoundstream.Text = "Open soundstream.pck...";
+            this.openSoundstream.UseVisualStyleBackColor = true;
+            this.openSoundstream.Click += new System.EventHandler(this.openSoundstream_Click);
             // 
-            // Form1
+            // soundstreamPath
+            // 
+            this.soundstreamPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.soundstreamPath.Location = new System.Drawing.Point(167, 72);
+            this.soundstreamPath.Name = "soundstreamPath";
+            this.soundstreamPath.ReadOnly = true;
+            this.soundstreamPath.Size = new System.Drawing.Size(369, 20);
+            this.soundstreamPath.TabIndex = 10;
+            // 
+            // loadFromFolder
+            // 
+            this.loadFromFolder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.loadFromFolder.Location = new System.Drawing.Point(12, 12);
+            this.loadFromFolder.Name = "loadFromFolder";
+            this.loadFromFolder.Size = new System.Drawing.Size(524, 23);
+            this.loadFromFolder.TabIndex = 11;
+            this.loadFromFolder.Text = "Load sound packs from folder...";
+            this.loadFromFolder.UseVisualStyleBackColor = true;
+            this.loadFromFolder.Click += new System.EventHandler(this.loadFromFolder_Click);
+            // 
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(548, 367);
-            this.Controls.Add(this.pckPath);
+            this.ClientSize = new System.Drawing.Size(548, 397);
+            this.Controls.Add(this.loadFromFolder);
+            this.Controls.Add(this.soundstreamPath);
+            this.Controls.Add(this.openSoundstream);
+            this.Controls.Add(this.soundbankPath);
             this.Controls.Add(this.controls);
-            this.Controls.Add(this.openPck);
+            this.Controls.Add(this.openSoundbank);
             this.MinimumSize = new System.Drawing.Size(564, 405);
-            this.Name = "Form1";
-            this.Text = "Halo 4 Audio Extractor";
+            this.Name = "MainForm";
+            this.Text = "Composer";
             this.controls.ResumeLayout(false);
             this.controls.PerformLayout();
             this.ResumeLayout(false);
@@ -155,14 +193,17 @@
 
         #endregion
 
-        private System.Windows.Forms.Button openPck;
-        private System.Windows.Forms.TextBox pckPath;
+        private System.Windows.Forms.Button openSoundbank;
+        private System.Windows.Forms.TextBox soundbankPath;
         private System.Windows.Forms.TreeView fileTree;
         private System.Windows.Forms.Button extractFile;
         private System.Windows.Forms.Button extractAll;
         private System.Windows.Forms.CheckBox convertFiles;
         private System.Windows.Forms.Panel controls;
         private System.Windows.Forms.ImageList nodeImages;
+        private System.Windows.Forms.Button openSoundstream;
+        private System.Windows.Forms.TextBox soundstreamPath;
+        private System.Windows.Forms.Button loadFromFolder;
     }
 }
 

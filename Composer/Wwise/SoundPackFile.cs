@@ -12,14 +12,20 @@ namespace Composer.Wwise
     /// </summary>
     public class SoundPackFile : IWwiseObject
     {
-        public SoundPackFile(IReader reader)
+        public SoundPackFile(SoundPack parent, IReader reader)
         {
+            ParentPack = parent;
             ID = reader.ReadUInt32();
             reader.Skip(4); // Flags?
             Size = reader.ReadInt32();
             Offset = reader.ReadInt32();
             FolderID = reader.ReadInt32();
         }
+
+        /// <summary>
+        /// The SoundPack that the file belongs to.
+        /// </summary>
+        public SoundPack ParentPack { get; private set; }
 
         /// <summary>
         /// The file's ID.
