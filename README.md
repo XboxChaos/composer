@@ -3,4 +3,4 @@ composer
 
 Halo 4 Audio Extractor
 
-Currently only extracts some sounds from soundstream.pck. Don't try opening soundbank.pck; the program's still kinda broken.
+Currently only extracts some of the game's sounds. Open both soundstream.pck and soundbank.pck (or just load them from their folder on the disk) and enjoy.
