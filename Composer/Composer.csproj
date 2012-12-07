@@ -68,15 +68,19 @@
     <Compile Include="Wwise\IWwiseObject.cs" />
     <Compile Include="Wwise\IWwiseObjectVisitor.cs" />
     <Compile Include="Wwise\RIFX.cs" />
+    <Compile Include="Wwise\RTPC.cs" />
     <Compile Include="Wwise\SoundBank.cs" />
     <Compile Include="Wwise\SoundBankAction.cs" />
     <Compile Include="Wwise\SoundBankEvent.cs" />
     <Compile Include="Wwise\SoundBankFile.cs" />
+    <Compile Include="Wwise\SoundBankMusicPlaylist.cs" />
     <Compile Include="Wwise\SoundBankVoice.cs" />
+    <Compile Include="Wwise\SoundInfo.cs" />
     <Compile Include="Wwise\SoundPack.cs" />
     <Compile Include="Wwise\SoundPackFile.cs" />
     <Compile Include="Wwise\SoundPackFolder.cs" />
     <Compile Include="TreeViewBuilder.cs" />
+    <Compile Include="Wwise\StateGroup.cs" />
     <Compile Include="Wwise\WwiseObjectCollection.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

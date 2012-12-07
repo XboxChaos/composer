@@ -122,6 +122,10 @@ namespace Composer
                 _objects.Dispatch(actionId, this);
         }
 
+        public void Visit(SoundBankMusicPlaylist playlist)
+        {
+        }
+
         /// <summary>
         /// Raises the FoundSoundBankFile event.
         /// </summary>

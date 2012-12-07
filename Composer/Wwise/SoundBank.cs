@@ -193,6 +193,10 @@ namespace Composer.Wwise
                         _eventsById[ev.ID] = ev;
                         obj = ev;
                         break;
+
+                    case ObjectType.MusicPlaylistContainer:
+                        obj = new SoundBankMusicPlaylist(reader, id);
+                        break;
                 }
 
                 // Register the object if something was read
