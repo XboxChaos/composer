@@ -64,30 +64,19 @@ namespace Composer.Wwise
             reader.Skip(numParameters * 4);
             reader.Skip(1);
 
-            HasPositioning = (reader.ReadByte() != 0);
-            if (HasPositioning)
-                ReadPositioningInfo(reader);
+            ReadPositioningInfo(reader);
 
             // Read auxiliary send settings
             OverrideParentGameDefinedAuxiliarySendSettings = (reader.ReadByte() != 0);
             UseGameDefinedAuxiliarySends = (reader.ReadByte() != 0);
             OverrideParentUserDefinedAuxiliarySendSettings = (reader.ReadByte() != 0);
-            HasUserDefinedAuxiliarySends = (reader.ReadByte() != 0);
-            if (HasUserDefinedAuxiliarySends)
-            {
-                AuxiliaryBusIDs = new uint[4];
-                for (int i = 0; i < 4; i++)
-                    AuxiliaryBusIDs[i] = reader.ReadUInt32();
-            }
-            else
-            {
-                AuxiliaryBusIDs = new uint[0];
-            }
+            ReadUserDefinedAuxiliarySends(reader);
 
             bool unknown = (reader.ReadByte() != 0);
             /*if (unknown)
                 reader.Skip(4);*/
 
+            // Read voice settings
             LimitMethod = (SoundLimitMethod)reader.ReadSByte();
             VirtualVoiceBehavior = (SoundVirtualVoiceBehavior)reader.ReadSByte();
             OverrideParentPlaybackLimitSettings = (reader.ReadByte() != 0);
@@ -138,6 +127,10 @@ namespace Composer.Wwise
 
         private void ReadPositioningInfo(IReader reader)
         {
+            HasPositioning = (reader.ReadByte() != 0);
+            if (!HasPositioning)
+                return;
+
             PositionType = (SoundPositionType)reader.ReadByte();
             if (PositionType == SoundPositionType.Position2D)
             {
@@ -160,6 +153,21 @@ namespace Composer.Wwise
                 {
                     UpdateEachFrame = (reader.ReadByte() != 0);
                 }
+            }
+        }
+
+        private void ReadUserDefinedAuxiliarySends(IReader reader)
+        {
+            HasUserDefinedAuxiliarySends = (reader.ReadByte() != 0);
+            if (HasUserDefinedAuxiliarySends)
+            {
+                AuxiliaryBusIDs = new uint[4];
+                for (int i = 0; i < 4; i++)
+                    AuxiliaryBusIDs[i] = reader.ReadUInt32();
+            }
+            else
+            {
+                AuxiliaryBusIDs = new uint[0];
             }
         }
 
