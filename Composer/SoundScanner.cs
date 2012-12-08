@@ -124,13 +124,28 @@ namespace Composer
 
         public void Visit(SoundBankMusicPlaylist playlist)
         {
+            // Visit each segment in the playlist
             foreach (uint id in playlist.SegmentIDs)
                 _objects.Dispatch(id, this);
         }
 
         public void Visit(SoundBankMusicSegment segment)
         {
+            // Visit each child track
             foreach (uint id in segment.ChildIDs)
+                _objects.Dispatch(id, this);
+        }
+
+        public void Visit(SoundBankMusicTrack track)
+        {
+            // Jump to the audio file it references
+            _objects.Dispatch(track.AudioID, this);
+        }
+
+        public void Visit(SoundBankMusicSwitchContainer container)
+        {
+            // Visit each segment in the container
+            foreach (uint id in container.SegmentIDs)
                 _objects.Dispatch(id, this);
         }
 

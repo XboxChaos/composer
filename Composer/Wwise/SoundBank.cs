@@ -201,6 +201,14 @@ namespace Composer.Wwise
                     case ObjectType.MusicSegment:
                         obj = new SoundBankMusicSegment(reader, id);
                         break;
+
+                    case ObjectType.MusicTrack:
+                        obj = new SoundBankMusicTrack(reader, id);
+                        break;
+
+                    case ObjectType.MusicSwitchContainer:
+                        obj = new SoundBankMusicSwitchContainer(reader, id);
+                        break;
                 }
 
                 // Register the object if something was read
