@@ -74,6 +74,7 @@
     <Compile Include="Wwise\SoundBankEvent.cs" />
     <Compile Include="Wwise\SoundBankFile.cs" />
     <Compile Include="Wwise\SoundBankMusicPlaylist.cs" />
+    <Compile Include="Wwise\SoundBankMusicSegment.cs" />
     <Compile Include="Wwise\SoundBankVoice.cs" />
     <Compile Include="Wwise\SoundInfo.cs" />
     <Compile Include="Wwise\SoundPack.cs" />

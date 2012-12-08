@@ -7,42 +7,40 @@ using Composer.IO;
 namespace Composer.Wwise
 {
     /// <summary>
-    /// A music playlist in a sound bank.
+    /// A music segment in a sound bank.
     /// </summary>
-    public class SoundBankMusicPlaylist : IWwiseObject
+    public class SoundBankMusicSegment : IWwiseObject
     {
-        public SoundBankMusicPlaylist(IReader reader, uint id)
+        public SoundBankMusicSegment(IReader reader, uint id)
         {
             ID = id;
 
             Info = new SoundInfo(reader);
 
-            // Read segment IDs
-            int numSegments = reader.ReadInt32();
-            SegmentIDs = new uint[numSegments];
-            for (int i = 0; i < numSegments; i++)
-                SegmentIDs[i] = reader.ReadUInt32();
-
-            // TODO: read the rest of the data
+            // Read child IDs
+            int numChildren = reader.ReadInt32();
+            ChildIDs = new uint[numChildren];
+            for (int i = 0; i < numChildren; i++)
+                ChildIDs[i] = reader.ReadUInt32();
         }
 
         /// <summary>
-        /// The playlist's ID.
+        /// The segment's ID.
         /// </summary>
         public uint ID { get; private set; }
 
         /// <summary>
-        /// Sound information about the playlist.
+        /// Sound information about the segment.
         /// </summary>
         public SoundInfo Info { get; private set; }
 
         /// <summary>
-        /// The IDs of the music segments in the playlist.
+        /// The IDs of the child sound objects.
         /// </summary>
-        public uint[] SegmentIDs { get; private set; }
+        public uint[] ChildIDs { get; private set; }
 
         /// <summary>
-        /// Calls the Visit(SoundBankMusicPlaylist) method on an IWwiseObjectVisitor.
+        /// Calls the Visit(SoundBankMusicSegment) method on an IWwiseObjectVisitor.
         /// </summary>
         /// <param name="visitor">The visitor to call the method on.</param>
         public void Accept(IWwiseObjectVisitor visitor)
