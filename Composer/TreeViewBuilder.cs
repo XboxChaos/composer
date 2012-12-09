@@ -9,7 +9,7 @@ using System.Windows.Forms;
 namespace Composer
 {
     /// <summary>
-    /// Contains methods for building TreeView nodes from directoryPath strings.
+    /// Contains methods for building sorted TreeViews from path strings.
     /// </summary>
     public class TreeViewBuilder
     {
@@ -41,12 +41,14 @@ namespace Composer
                 string component = pathComponents[i];
 
                 // Only create a new node if a node doesn't already exist for the component
-                TreeNode node = FindChild(nodeList, component);
-                if (node == null)
+                int index = FindChild(nodeList, component);
+                if (index < 0)
                 {
-                    node = new TreeNode(component);
+                    index = ~index;
+
+                    TreeNode node = new TreeNode(component);
                     node.Name = component;
-                    nodeList.Add(node);
+                    nodeList.Insert(index, node);
 
                     // If this is the last path component, tag it and set its image
                     if (i == pathComponents.Length - 1)
@@ -56,7 +58,7 @@ namespace Composer
                         node.SelectedImageIndex = image;
                     }
                 }
-                nodeList = node.Nodes;
+                nodeList = nodeList[index].Nodes;
             }
         }
 
@@ -74,11 +76,11 @@ namespace Composer
             TreeNode result = null;
             foreach (string component in pathComponents)
             {
-                result = FindChild(nodeList, component);
-                if (result == null)
+                int index = FindChild(nodeList, component);
+                if (index < 0)
                     return null; // The node with the given path doesn't exist
 
-                nodeList = result.Nodes;
+                nodeList = nodeList[index].Nodes;
             }
             return result;
         }
@@ -89,15 +91,25 @@ namespace Composer
             return path.Split('/', '\\');
         }
 
-        private TreeNode FindChild(TreeNodeCollection nodes, string text)
+        private int FindChild(TreeNodeCollection nodes, string text)
         {
-            // This is actually faster than TreeNodeCollection.Find()
-            foreach (TreeNode child in nodes)
+            // Binary search the node list
+            int start = 0;
+            int end = nodes.Count - 1;
+            while (start <= end)
             {
-                if (child.Text == text)
-                    return child;
+                int mid = (start + end) / 2;
+                int comparison = nodes[mid].Text.CompareTo(text);
+                if (comparison == 0)
+                    return mid;
+                else if (comparison < 0)
+                    start = mid + 1;
+                else
+                    end = mid - 1;
             }
-            return null;
+            
+            // Not found - return the inverse of the suggested insertion index
+            return ~start;
         }
     }
 }
