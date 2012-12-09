@@ -7,19 +7,36 @@ using Composer.IO;
 
 namespace Composer.Wwise
 {
+    /// <summary>
+    /// Provides constants for common format magic values in RIFF/RIFX files.
+    /// </summary>
+    public static class RIFFFormat
+    {
+        public const int WAVE = 0x57415645;
+        public const int XWMA = 0x58574D41;
+    }
+
+    /// <summary>
+    /// Big-endian RIFF container.
+    /// </summary>
     public class RIFX
     {
-        private int _totalSize;
-
         /// <summary>
         /// Loads RIFX data from a stream.
         /// </summary>
         /// <param name="reader">The EndianReader to read from.</param>
-        public RIFX(EndianReader reader)
+        /// <param name="size">The size of the data to read.</param>
+        public RIFX(EndianReader reader, int size)
         {
             ReadHeader(reader);
-            ReadBlocks(reader);
+            ReadBlocks(reader, size);
         }
+
+        /// <summary>
+        /// The magic value (e.g. 'WAVE') near the beginning of the file which indicates the file's format.
+        /// </summary>
+        /// <seealso cref="RIFFFormat"/>
+        public int FormatMagic { get; private set; }
 
         /// <summary>
         /// The compression codec.
@@ -35,6 +52,31 @@ namespace Composer.Wwise
         /// The sample rate.
         /// </summary>
         public int SampleRate { get; private set; }
+
+        /// <summary>
+        /// The average number of bytes to be processed per second.
+        /// </summary>
+        public int BytesPerSecond { get; private set; }
+
+        /// <summary>
+        /// Block alignment.
+        /// </summary>
+        public short BlockAlign { get; private set; }
+
+        /// <summary>
+        /// The number of bits per coded sample.
+        /// </summary>
+        public short BitsPerSample { get; private set; }
+
+        /// <summary>
+        /// Extra codec-specific data in the header.
+        /// </summary>
+        public byte[] ExtraData { get; private set; }
+
+        /// <summary>
+        /// The file's seek table. Can be null.
+        /// </summary>
+        public int[] SeekOffsets { get; private set; }
 
         /// <summary>
         /// The offset of the audio data from the start of the RIFX file.
@@ -54,17 +96,14 @@ namespace Composer.Wwise
             if (reader.ReadInt32() != 0x52494658) // RIFX
                 throw new InvalidOperationException("Invalid RIFX header");
 
-            // The size is in little endian, for whatever reason
-            reader.Endianness = Endian.LittleEndian;
-            _totalSize = reader.ReadInt32();
-            reader.Endianness = Endian.BigEndian;
+            // Skip over the size, it's endianness varies and the value itself is just plain wrong sometimes
+            reader.Skip(4);
 
-            // Check the 'WAVE' magic
-            if (reader.ReadUInt32() != 0x57415645) // WAVE
-                throw new InvalidOperationException("Invalid RIFX WAVE header");
+            // Read the format magic value
+            FormatMagic = reader.ReadInt32();
         }
 
-        private void ReadBlocks(EndianReader reader)
+        private void ReadBlocks(EndianReader reader, int size)
         {
             reader.Endianness = Endian.BigEndian;
 
@@ -72,7 +111,7 @@ namespace Composer.Wwise
             long baseOffset = reader.Position - offset; // Start of the RIFX data
 
             // Read each block in the file
-            while (offset < _totalSize)
+            while (offset < size)
             {
                 // Read the block ID and size
                 int blockId = reader.ReadInt32();
@@ -91,6 +130,10 @@ namespace Composer.Wwise
                         DataOffset = offset;
                         DataSize = blockSize;
                         break;
+
+                    case 0x7365656B: // 'seek'
+                        ReadSeekOffsets(reader, blockSize);
+                        break;
                 }
 
                 // Skip to the next block
@@ -107,6 +150,20 @@ namespace Composer.Wwise
             Codec = reader.ReadInt16();
             ChannelCount = reader.ReadInt16();
             SampleRate = reader.ReadInt32();
+            BytesPerSecond = reader.ReadInt32();
+            BlockAlign = reader.ReadInt16();
+            BitsPerSample = reader.ReadInt16();
+
+            short extraDataSize = reader.ReadInt16();
+            ExtraData = reader.ReadBlock(extraDataSize);
+        }
+
+        private void ReadSeekOffsets(EndianReader reader, int blockSize)
+        {
+            int numEntries = blockSize / 4; // The block is just an array of uint32s, one for each packet size
+            SeekOffsets = new int[numEntries];
+            for (int i = 0; i < numEntries; i++)
+                SeekOffsets[i] = reader.ReadInt32();
         }
     }
 }

@@ -24,6 +24,8 @@ namespace Composer
         private NameLookup _soundNames = null;
         private WwiseObjectCollection _wwiseObjects = new WwiseObjectCollection();
         private TreeViewBuilder _treeBuilder = null;
+        private List<SoundBank> _soundbanks = null;
+        private List<SoundFileInfo> _soundsFound = new List<SoundFileInfo>();
 
         private class SoundFileInfo
         {
@@ -31,6 +33,7 @@ namespace Composer
             public int Offset;
             public int Size;
             public uint ID;
+            public SoundFormat Format;
         }
 
         public MainForm()
@@ -38,7 +41,9 @@ namespace Composer
             InitializeComponent();
 
             _defaultTitle = Text;
-            _soundNames = INILookupLoader.LoadFromFile("soundnames.txt");
+            _soundNames = INILookupLoader.LoadFromFile("soundnames.lst");
+
+            xwmaCompression.SelectedIndex = 0;
         }
 
         private void openSoundbank_Click(object sender, EventArgs e)
@@ -110,43 +115,86 @@ namespace Composer
 
             try
             {
-                string fileName = fileTree.SelectedNode.Text;
+                string fileName = Path.GetFileNameWithoutExtension(fileTree.SelectedNode.Text);
 
-                if (!convertFiles.Checked)
+                if (!convertFiles.Checked || info.Format == SoundFormat.Unknown)
                 {
                     // Extract the file's raw contents
-                    string extractPath = AskForDestinationFile("Save Raw Data", "Binary Files|*.bin|All Files|*.*", fileName, "bin");
-                    if (extractPath != null)
-                        ExtractRaw(info.Reader, info.Offset, info.Size, extractPath);
-                    return;
-                }
-            
-                // Read the RIFX data
-                info.Reader.SeekTo(info.Offset);
-                RIFX rifx = new RIFX(info.Reader);
-
-                // Choose the output format based upon its codec
-                switch (rifx.Codec)
-                {
-                    case 0x166:
-                        {
-                            string extractPath = AskForDestinationFile("Save WAV File", "WAV Files|*.wav", fileName, "wav");
-                            if (extractPath == null)
-                                return;
-                            ExtractWAV(info.Reader, info.Offset, rifx, extractPath);
-                        }
-                        break;
-                    case -1:
-                        {
-                            string extractPath = AskForDestinationFile("Save OGG File", "OGG Files|*.ogg", fileName, "ogg");
-                            if (extractPath == null)
-                                return;
-                            ExtractOGG(info.Reader, info.Offset, info.Size, extractPath);
-                        }
-                        break;
-                    default:
-                        MessageBox.Show("Unsupported codec 0x" + ((ushort)rifx.Codec).ToString("X4"), _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    string extractPath = AskForDestinationFile("Save Embedded Data", "Embedded Wwise Files|*.wem|All Files|*.*", fileName, "");
+                    if (extractPath == null)
                         return;
+                    SoundExtraction.ExtractRaw(info.Reader, info.Offset, info.Size, extractPath);
+                }
+                else
+                {
+                    // Read the RIFX data
+                    info.Reader.SeekTo(info.Offset);
+                    RIFX rifx = new RIFX(info.Reader, info.Size);
+
+                    switch (info.Format)
+                    {
+                        case SoundFormat.XWMA:
+                            {
+                                if (!File.Exists("Helpers/xWMAEncode.exe"))
+                                {
+                                    MessageBox.Show("Composer has detected that the file you want to extract is an xWMA audio file.\n\nIn order to decode files of this type, you must get the \"xWMAEncode.exe\" utility from the Microsoft DirectX SDK and place it into the \"Helpers\" folder. The utility cannot be distributed along with Composer for legal reasons.\n\nSee the README.txt file for more information.", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return;
+                                }
+
+                                if (compressXwma.Checked)
+                                {
+                                    // Get the file extension based upon the selected compression format
+                                    string extension = (string)xwmaCompression.SelectedItem;
+                                    extension = extension.Remove(extension.IndexOf(' '));
+
+                                    string extractPath = AskForDestinationFile("Save " + extension + " File", extension + " Files|*." + extension.ToLower(), fileName, extension.ToLower());
+                                    if (extractPath == null)
+                                        return;
+
+                                    // Extract the WAV to a temporary file and then compress it with FLAC
+                                    string tempPath = Path.GetTempFileName();
+                                    try
+                                    {
+                                        SoundExtraction.ExtractXWMAToWAV(info.Reader, info.Offset, rifx, tempPath);
+                                        SoundExtraction.CompressWAV(tempPath, extractPath);
+                                    }
+                                    finally
+                                    {
+                                        // Delete the temporary file
+                                        if (File.Exists(tempPath))
+                                            File.Delete(tempPath);
+                                    }
+                                }
+                                else
+                                {
+                                    // Just extract a WAV
+                                    string extractPath = AskForDestinationFile("Save WAV File", "WAV Files|*.wav", fileName, "");
+                                    if (extractPath == null)
+                                        return;
+                                    SoundExtraction.ExtractXWMAToWAV(info.Reader, info.Offset, rifx, extractPath);
+                                }
+                            }
+                            break;
+                        case SoundFormat.XMA:
+                            {
+                                string extractPath = AskForDestinationFile("Save WAV File", "WAV Files|*.wav", fileName, "");
+                                if (extractPath == null)
+                                    return;
+                                SoundExtraction.ExtractXMAToWAV(info.Reader, info.Offset, rifx, extractPath);
+                            }
+                            break;
+                        case SoundFormat.WwiseOGG:
+                            {
+                                string extractPath = AskForDestinationFile("Save OGG File", "OGG Files|*.ogg", fileName, "");
+                                if (extractPath == null)
+                                    return;
+                                SoundExtraction.ExtractWwiseToOGG(info.Reader, info.Offset, info.Size, extractPath);
+                            }
+                            break;
+                        default:
+                            MessageBox.Show("Unsupported RIFX codec 0x" + ((ushort)rifx.Codec).ToString("X4"), _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                    }
                 }
 
                 MessageBox.Show("File extracted successfully!", _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -167,6 +215,16 @@ namespace Composer
                 ExtractFolder(folder, outPath);*/
 
             MessageBox.Show("BROKEN: FIX!"/*"All files extracted successfully!"*/, _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void compressXwma_CheckedChanged(object sender, EventArgs e)
+        {
+            xwmaCompression.Enabled = compressXwma.Checked;
+        }
+
+        private void fileTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            extractFile_Click(sender, e);
         }
 
         private string AskForPackFile(string name)
@@ -207,7 +265,7 @@ namespace Composer
             sfd.Title = title;
             sfd.Filter = filter;
             sfd.DefaultExt = extension;
-            sfd.FileName = baseName + "." + extension;
+            sfd.FileName = baseName;
             if (sfd.ShowDialog() == DialogResult.OK)
                 return sfd.FileName;
             return null;
@@ -243,13 +301,23 @@ namespace Composer
             scanner.FoundSoundPackFile += FoundSoundPackFile;
 
             // Load everything from the packs into the scanner
+            _soundbanks = new List<SoundBank>();
             LoadObjects(_soundbankPack, _soundbankReader, scanner);
             LoadObjects(_soundstreamPack, _soundstreamReader, scanner);
 
             // Clear the TreeView and scan everything
             // The event handlers attached above are responsible for adding nodes to the tree
             fileTree.Nodes.Clear();
-            scanner.ScanAll();
+            foreach (SoundBank bank in _soundbanks)
+            {
+                foreach (SoundBankEvent ev in bank.Events)
+                {
+                    scanner.ScanEvent(ev);
+                    AddSoundNodes(ev);
+                    _soundsFound.Clear();
+                }
+            }
+            _soundbanks = null;
         }
 
         /// <summary>
@@ -266,17 +334,21 @@ namespace Composer
             // Calculate the offset of the audio data
             int offset = packFile.Offset + e.File.ParentBank.DataOffset + e.File.Offset;
 
+            // Read the sound's RIFX data so we can identify its format
+            _soundbankReader.SeekTo(offset);
+            RIFX rifx = new RIFX(_soundbankReader, e.File.Size);
+            SoundFormat format = FormatIdentification.IdentifyFormat(rifx);
+
             // Create information to tag the tree node with
             SoundFileInfo info = new SoundFileInfo
             {
                 Reader = _soundbankReader,
                 Offset = offset,
                 Size = e.File.Size,
-                ID = e.File.ID
+                ID = e.File.ID,
+                Format = format
             };
-
-            // Add it to the tree
-            AddSoundNode(e.SourceEvent, info);
+            _soundsFound.Add(info);
         }
 
         /// <summary>
@@ -289,52 +361,66 @@ namespace Composer
             if (_soundbankPack.FindFileByID(e.File.ID) != null)
                 reader = _soundbankReader;
 
+            // Read the sound's RIFX data so we can identify its format
+            reader.SeekTo(e.File.Offset);
+            RIFX rifx = new RIFX(reader, e.File.Size);
+            SoundFormat format = FormatIdentification.IdentifyFormat(rifx);
+
             // Create information to tag the tree node with
             SoundFileInfo info = new SoundFileInfo
             {
                 Reader = reader,
                 Offset = e.File.Offset,
                 Size = e.File.Size,
-                ID = e.File.ID
+                ID = e.File.ID,
+                Format = format
             };
-
-            // Add it to the tree
-            AddSoundNode(e.SourceEvent, info);
+            _soundsFound.Add(info);
         }
 
-        private void AddSoundNode(SoundBankEvent sourceEvent, SoundFileInfo info)
+        private void AddSoundNodes(SoundBankEvent sourceEvent)
         {
-            // Determine the name of the sound based upon its source event
-            string name = _soundNames.FindName(sourceEvent.ID);
-            if (name == null)
-                name = "unknown/" + info.ID.ToString("X8");
-
-            TreeNode oldNode = _treeBuilder.GetNode(name);
-            if (oldNode != null)
+            string eventName = _soundNames.FindName(sourceEvent.ID);
+            
+            if (eventName != null && _soundsFound.Count == 1)
             {
-                SoundFileInfo oldInfo = oldNode.Tag as SoundFileInfo;
-                if (oldInfo != null)
-                {
-                    if (oldInfo.ID == info.ID)
-                        return;
-
-                    // A different node with the path already exists
-                    // Untag it, make it a folder, and add it as a child for the old node instead
-                    oldNode.Tag = null;
-                    oldNode.ImageIndex = 0;
-                    oldNode.SelectedImageIndex = 0;
-
-                    TreeNode child = new TreeNode(oldInfo.ID.ToString("X8"), 1, 1);
-                    child.Tag = oldInfo;
-                    oldNode.Nodes.Add(child);
-                }
-
-                // Add us as a child of the node
-                name += "/" + info.ID.ToString("X8");
+                // Just add a leaf node
+                string extension = GetFormatExtension(_soundsFound[0].Format);
+                _treeBuilder.AddNode(eventName + extension, 1, _soundsFound[0]);
             }
+            else
+            {
+                if (eventName == null)
+                    eventName = "unknown";
 
-            // Add the sound to the tree
-            _treeBuilder.AddNode(name, 1, info);
+                // Add the sounds to a folder
+                foreach (SoundFileInfo info in _soundsFound)
+                {
+                    string folderName = Path.GetFileName(eventName);
+                    string extension = GetFormatExtension(info.Format);
+                    _treeBuilder.AddNode(eventName + '/' + folderName + '_' + info.ID.ToString("X8") + extension, 1, info);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the file extension for a sound format.
+        /// </summary>
+        /// <param name="format">The SoundFormat to retrieve the file extension for.</param>
+        /// <returns>The format's file extension (including the leading period).</returns>
+        private static string GetFormatExtension(SoundFormat format)
+        {
+            switch (format)
+            {
+                case SoundFormat.WwiseOGG:
+                    return ".ogg";
+                case SoundFormat.XMA:
+                    return ".xma";
+                case SoundFormat.XWMA:
+                    return ".xwma";
+                default:
+                    return ".wem";
+            }
         }
 
         private void LoadObjects(SoundPack pack, EndianReader reader, SoundScanner scanner)
@@ -355,7 +441,8 @@ namespace Composer
                         case 0x424B4844: // BKHD
                             reader.SeekTo(file.Offset);
                             SoundBank bank = new SoundBank(reader, file.Size);
-                            scanner.RegisterSoundBank(bank);
+                            scanner.RegisterObjects(bank.Objects);
+                            _soundbanks.Add(bank);
                             break;
                     }
                 }
@@ -408,144 +495,5 @@ namespace Composer
                 }
             }
         }*/
-
-        /// <summary>
-        /// Extracts the raw contents of a sound to a file.
-        /// </summary>
-        /// <param name="reader">The stream to read from.</param>
-        /// <param name="offset">The offset of the data to extract.</param>
-        /// <param name="size">The size of the data to extract.</param>
-        /// <param name="outPath">The path of the file to save to.</param>
-        private void ExtractRaw(IReader reader, int offset, int size, string outPath)
-        {
-            using (EndianWriter output = new EndianWriter(File.OpenWrite(outPath), Endian.BigEndian))
-            {
-                // Just copy the data over to the output stream
-                reader.SeekTo(offset);
-                StreamUtil.Copy(reader, output, size);
-            }
-        }
-
-        /// <summary>
-        /// Extracts a sound and converts it to a WAV.
-        /// </summary>
-        /// <param name="reader">The stream to read from.</param>
-        /// <param name="offset">The offset of the data to extract.</param>
-        /// <param name="rifx">The RIFX data for the SoundPackFile.</param>
-        /// <param name="outPath">The path of the file to save to.</param>
-        private void ExtractWAV(IReader reader, int offset, RIFX rifx, string outPath)
-        {
-            // Create a temporary file to write an XMA to
-            string tempFile = Path.GetTempFileName() + ".xma";
-
-            try
-            {
-                using (EndianWriter output = new EndianWriter(File.OpenWrite(tempFile), Endian.BigEndian))
-                {
-                    // Generate an XMA header
-                    // Adapted from wwisexmabank
-                    output.WriteInt32(0x52494646); // 'RIFF'
-                    output.Endianness = Endian.LittleEndian;
-                    output.WriteInt32(rifx.DataSize + 0x34);
-                    output.Endianness = Endian.BigEndian;
-                    output.WriteInt32(0x57415645); // 'WAVE'
-
-                    // Generate the 'fmt ' chunk
-                    output.WriteInt32(0x666D7420); // 'fmt '
-                    output.Endianness = Endian.LittleEndian;
-                    output.WriteInt32(0x20);
-                    output.WriteInt16(0x165);
-                    output.WriteInt16(16);
-                    output.WriteInt16(0);
-                    output.WriteInt16(0);
-                    output.WriteInt16(1);
-                    output.WriteByte(0);
-                    output.WriteByte(3);
-                    output.WriteInt32(0);
-                    output.WriteInt32(rifx.SampleRate);
-                    output.WriteInt32(0);
-                    output.WriteInt32(0);
-                    output.WriteByte(0);
-                    output.WriteByte((byte)rifx.ChannelCount);
-                    output.WriteInt16(0x0002);
-
-                    // 'data' chunk
-                    output.Endianness = Endian.BigEndian;
-                    output.WriteInt32(0x64617461); // 'data'
-                    output.Endianness = Endian.LittleEndian;
-                    output.WriteInt32(rifx.DataSize);
-
-                    // Copy the data chunk contents from the original RIFX
-                    reader.SeekTo(offset + rifx.DataOffset);
-                    StreamUtil.Copy(reader, output, rifx.DataSize);
-                }
-
-                // Convert it with towav
-                RunProgramSilently("Helpers/towav.exe", Path.GetFileName(tempFile), Path.GetDirectoryName(tempFile));
-
-                // Move the WAV to the destination directoryPath
-                File.Move(Path.ChangeExtension(tempFile, "wav"), outPath);
-            }
-            finally
-            {
-                // Delete the temporary XMA file
-                if (File.Exists(tempFile))
-                    File.Delete(tempFile);
-            }
-        }
-
-        /// <summary>
-        /// Extracts a sound and converts it to an OGG.
-        /// </summary>
-        /// <param name="reader">The stream to read from.</param>
-        /// <param name="offset">The offset of the data to extract.</param>
-        /// <param name="size">The size of the data to extract.</param>
-        /// <param name="outPath">The path of the file to save to.</param>
-        private void ExtractOGG(IReader reader, int offset, int size, string outPath)
-        {
-            // Just extract the RIFX to a temporary file
-            string tempFile = Path.GetTempFileName() + ".wav";
-
-            try
-            {
-                using (EndianWriter output = new EndianWriter(File.OpenWrite(tempFile), Endian.BigEndian))
-                {
-                    reader.SeekTo(offset);
-                    StreamUtil.Copy(reader, output, size);
-                }
-
-                // Run ww2ogg to convert the resulting RIFX to an OGG
-                RunProgramSilently("Helpers/ww2ogg.exe",
-                    string.Format("\"{0}\" -o \"{1}\" --pcb Helpers/packed_codebooks_aoTuV_603.bin", tempFile, outPath),
-                    Path.GetDirectoryName(Application.ExecutablePath));
-
-                // Run revorb to fix up the OGG
-                RunProgramSilently("Helpers/revorb.exe", "\"" + outPath + "\"", Directory.GetCurrentDirectory());
-            }
-            finally
-            {
-                // Delete the old RIFX file
-                if (File.Exists(tempFile))
-                    File.Delete(tempFile);
-            }
-        }
-
-        /// <summary>
-        /// Silently executes a program and waits for it to finish.
-        /// </summary>
-        /// <param name="path">The path to the program to execute.</param>
-        /// <param name="arguments">Command-line arguments to pass to the program.</param>
-        /// <param name="workingDirectory">The working directory to run in the program in.</param>
-        private void RunProgramSilently(string path, string arguments, string workingDirectory)
-        {
-            ProcessStartInfo info = new ProcessStartInfo(path, arguments);
-            info.CreateNoWindow = true;
-            //info.RedirectStandardOutput = true;
-            info.UseShellExecute = false;
-            info.WorkingDirectory = workingDirectory;
-
-            Process proc = Process.Start(info);
-            proc.WaitForExit();
-        }
     }
 }

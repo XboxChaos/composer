@@ -51,16 +51,6 @@ namespace Composer
         public EventHandler<SoundFileEventArgs<SoundPackFile>> FoundSoundPackFile;
 
         /// <summary>
-        /// Registers the contents of a sound bank to be scanned.
-        /// </summary>
-        /// <param name="bank">The SoundBank to register.</param>
-        public void RegisterSoundBank(SoundBank bank)
-        {
-            _banks.Add(bank);
-            _objects.Import(bank.Objects);
-        }
-
-        /// <summary>
         /// Registers a Wwise object to be scanned.
         /// </summary>
         /// <param name="obj">The object to register.</param>
@@ -70,15 +60,21 @@ namespace Composer
         }
 
         /// <summary>
-        /// Scans through all registered events and objects to find sounds.
+        /// Registers a collection of Wwise objects to be scanned.
         /// </summary>
-        public void ScanAll()
+        /// <param name="objects">The collection of objects to register.</param>
+        public void RegisterObjects(WwiseObjectCollection objects)
         {
-            foreach (SoundBank bank in _banks)
-            {
-                foreach (SoundBankEvent ev in bank.Events)
-                    ProcessEvent(ev);
-            }
+            _objects.Import(objects);
+        }
+
+        /// <summary>
+        /// Scans a SoundBankEvent for sound files.
+        /// </summary>
+        /// <param name="ev">The SoundBankEvent to scan.</param>
+        public void ScanEvent(SoundBankEvent ev)
+        {
+            Visit(ev);
         }
 
         public void Visit(SoundBankFile file)
@@ -167,11 +163,6 @@ namespace Composer
         {
             if (FoundSoundPackFile != null)
                 FoundSoundPackFile(this, args);
-        }
-
-        private void ProcessEvent(SoundBankEvent ev)
-        {
-            Visit(ev);
         }
     }
 }

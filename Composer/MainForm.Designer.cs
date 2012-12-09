@@ -38,6 +38,8 @@
             this.extractAll = new System.Windows.Forms.Button();
             this.convertFiles = new System.Windows.Forms.CheckBox();
             this.controls = new System.Windows.Forms.Panel();
+            this.xwmaCompression = new System.Windows.Forms.ComboBox();
+            this.compressXwma = new System.Windows.Forms.CheckBox();
             this.openSoundstream = new System.Windows.Forms.Button();
             this.soundstreamPath = new System.Windows.Forms.TextBox();
             this.loadFromFolder = new System.Windows.Forms.Button();
@@ -75,9 +77,10 @@
             this.fileTree.Location = new System.Drawing.Point(0, 0);
             this.fileTree.Name = "fileTree";
             this.fileTree.SelectedImageIndex = 0;
-            this.fileTree.Size = new System.Drawing.Size(524, 257);
+            this.fileTree.Size = new System.Drawing.Size(524, 232);
             this.fileTree.TabIndex = 4;
             this.fileTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.fileTree_AfterSelect);
+            this.fileTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.fileTree_NodeMouseDoubleClick);
             // 
             // nodeImages
             // 
@@ -90,7 +93,7 @@
             // 
             this.extractFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.extractFile.Enabled = false;
-            this.extractFile.Location = new System.Drawing.Point(0, 263);
+            this.extractFile.Location = new System.Drawing.Point(0, 238);
             this.extractFile.Name = "extractFile";
             this.extractFile.Size = new System.Drawing.Size(149, 23);
             this.extractFile.TabIndex = 5;
@@ -101,7 +104,7 @@
             // extractAll
             // 
             this.extractAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.extractAll.Location = new System.Drawing.Point(155, 263);
+            this.extractAll.Location = new System.Drawing.Point(155, 238);
             this.extractAll.Name = "extractAll";
             this.extractAll.Size = new System.Drawing.Size(149, 23);
             this.extractAll.TabIndex = 6;
@@ -111,12 +114,11 @@
             // 
             // convertFiles
             // 
-            this.convertFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.convertFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.convertFiles.AutoSize = true;
             this.convertFiles.Checked = true;
             this.convertFiles.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.convertFiles.Location = new System.Drawing.Point(367, 267);
-            this.convertFiles.Margin = new System.Windows.Forms.Padding(0);
+            this.convertFiles.Location = new System.Drawing.Point(0, 267);
             this.convertFiles.Name = "convertFiles";
             this.convertFiles.Size = new System.Drawing.Size(157, 17);
             this.convertFiles.TabIndex = 7;
@@ -128,6 +130,8 @@
             this.controls.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.controls.Controls.Add(this.xwmaCompression);
+            this.controls.Controls.Add(this.compressXwma);
             this.controls.Controls.Add(this.convertFiles);
             this.controls.Controls.Add(this.extractAll);
             this.controls.Controls.Add(this.extractFile);
@@ -137,6 +141,33 @@
             this.controls.Name = "controls";
             this.controls.Size = new System.Drawing.Size(524, 286);
             this.controls.TabIndex = 8;
+            // 
+            // xwmaCompression
+            // 
+            this.xwmaCompression.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.xwmaCompression.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.xwmaCompression.FormattingEnabled = true;
+            this.xwmaCompression.Items.AddRange(new object[] {
+            "FLAC (lossless, medium size)",
+            "MP3 (lossy, small size)"});
+            this.xwmaCompression.Location = new System.Drawing.Point(300, 265);
+            this.xwmaCompression.Name = "xwmaCompression";
+            this.xwmaCompression.Size = new System.Drawing.Size(181, 21);
+            this.xwmaCompression.TabIndex = 9;
+            // 
+            // compressXwma
+            // 
+            this.compressXwma.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.compressXwma.AutoSize = true;
+            this.compressXwma.Checked = true;
+            this.compressXwma.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.compressXwma.Location = new System.Drawing.Point(163, 267);
+            this.compressXwma.Name = "compressXwma";
+            this.compressXwma.Size = new System.Drawing.Size(131, 17);
+            this.compressXwma.TabIndex = 8;
+            this.compressXwma.Text = "Compress xWMA files:";
+            this.compressXwma.UseVisualStyleBackColor = true;
+            this.compressXwma.CheckedChanged += new System.EventHandler(this.compressXwma_CheckedChanged);
             // 
             // openSoundstream
             // 
@@ -204,6 +235,8 @@
         private System.Windows.Forms.Button openSoundstream;
         private System.Windows.Forms.TextBox soundstreamPath;
         private System.Windows.Forms.Button loadFromFolder;
+        private System.Windows.Forms.CheckBox compressXwma;
+        private System.Windows.Forms.ComboBox xwmaCompression;
     }
 }
 

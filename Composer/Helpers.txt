@@ -1,0 +1,47 @@
+﻿The following programs have been included alongside Composer as "helper" programs.
+Their binaries and any necessary data can be found in the "Helpers" directory.
+
+Without these programs, all that Composer is able to do is parse and extract the game's .pck files.
+Most of the magic happens with these utilities, and their developers deserve respect.
+
+The developer(s) of Composer do NOT take ANY credit whatsoever for any of these programs.
+They were all completely developed by third parties not connected with any Composer developer in any way.
+
+------
+ww2ogg
+------
+Composer makes use of ww2ogg in order to convert WWISE OGG files into OGG Vorbis files.
+
+ww2ogg was developed by Halley's Comet Software and can be found at http://hcs64.com/vgm_ripping.html.
+The download link used was http://hcs64.com/files/ww2ogg019.zip.
+At the time Composer was written, source code was included in the .zip file.
+
+The "packed_codebooks_aoTuV_603.bin" file was also included with the download.
+
+------
+revorb
+------
+Composer makes use of revorb in order to "clean up" OGG Vorbis files produced with ww2ogg.
+
+ww2ogg was developed by <yirkha@fud.cz> and can be found at http://www.hydrogenaudio.org/forums/lofiversion/index.php/t64328.html.
+The download link used was http://yirkha.fud.cz/progs/foobar2000/revorb.exe.
+
+-----
+towav
+-----
+Composer makes use of towav in order to convert XMA files into WAV files.
+
+towav was developed by Xplorer.
+The download link used was http://www.ctpax-x.ru/index.php?goto=files&down=24.
+
+------
+FFmpeg
+------
+Composer makes use of FFmpeg in order to compress WAV files produced by xWMAEncode.exe.
+
+FFmpeg can be found at http://ffmpeg.org/.
+The specific build used is licensed under the GPLv2: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html.
+
+The binary (Helpers/ffmpeg.exe) included alongside Composer was compiled by Zeranoe.
+The download link used was http://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-20121125-git-26c531c-win32-static.7z.
+Newer Windows builds may be found at http://ffmpeg.zeranoe.com/builds/.
