@@ -3115,12 +3115,15 @@
 0x6F54F9AA=vehicles\player\ghost_player
 0x2F6B6226=storm\vehicles\damage_states\damage_states_new\ambience\events\emp_drain_cov_in
 0x40A8253C=storm\vehicles\damage_states\damage_states_new\ambience\events\emp_drain_cov_out
+0xF4EC5C75=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a21_small_hall
 0xD457CE41=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_small_shed_in
 0xAC7C800F=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_small_shed_out
+0x6ED0E63F=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a01_room
 0xE6197278=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_int_01_in
 0x7350003A=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_int_01_out
 0xE619727B=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_int_02_in
 0x73500039=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_int_02_out
+0x328F1332=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a81_slight_reverb
 0xF51B8897=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_building_top_01_in
 0x8C797C7D=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_building_top_01_out
 0xE619727A=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_int_03_in
@@ -3139,6 +3142,7 @@
 0x3F9EA81A=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_middle_out
 0x366D5ED5=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_middle_2nd_in
 0x8A3A18B3=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_middle_2nd_out
+0x413998BF=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a91_half_open
 0xB8296772=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_under_walkway_in
 0xB8B2AD18=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_under_walkway_out
 0x3D40F41B=environments\multiplayer\bloodycavern\final_ambiences\ac\ambience\events\amb_blood_cavern_ac_above_walkway_in
@@ -5680,12 +5684,14 @@
 0xC921B9CB=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_open_area_02_out
 0x3A00B50=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_open_area_03_in
 0xC921B9CA=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_open_area_03_out
+0x4FC3C9BC=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a24_medium_hall
 0x9296E884=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_overhang_metal_01_in
 0xE56A32FE=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_overhang_metal_01_out
 0x9296E887=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_overhang_metal_02_in
 0xE56A32FD=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_overhang_metal_02_out
 0x9296E886=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_overhang_metal_03_in
 0xE56A32FC=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_overhang_metal_03_out
+0x25B5A96B=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a11_hallway
 0xC4C8B8E0=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_overhang_rock_01_in
 0x4BF8C316=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_overhang_rock_01_out
 0xC4C8B8E3=environments\multiplayer\crash\ac\ambience\events\amb_crash_ac_overhang_rock_02_in
@@ -5731,6 +5737,7 @@
 0x874DFE7A=environments\multiplayer\canyon\ac\ambience\events\amb_canyon_ac_black_base_int_bottom_out
 0x2B4E2F8B=environments\multiplayer\canyon\ac\ambience\events\amb_canyon_ac_black_base_int_2nd_in
 0xAA139781=environments\multiplayer\canyon\ac\ambience\events\amb_canyon_ac_black_base_int_2nd_out
+0x460506F5=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\o61_cave
 0xE95E9F95=environments\multiplayer\canyon\ac\ambience\events\amb_canyon_ac_caveside_in
 0xF608A9B3=environments\multiplayer\canyon\ac\ambience\events\amb_canyon_ac_caveside_out
 0x1AF02D36=environments\multiplayer\canyon\ac\ambience\events\amb_canyon_ac_black_base_cave_01_in
@@ -5776,6 +5783,7 @@
 0x4DB7B7FA=environments\multiplayer\bonanza\ac\ambience\events\amb_bonanza_ac_inland_01_out
 0x2C9D5FD4=environments\multiplayer\bonanza\ac\ambience\events\amb_bonanza_ac_coast_01_in
 0x77956A56=environments\multiplayer\bonanza\ac\ambience\events\amb_bonanza_ac_coast_01_out
+0x12640857=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a27_huge_hall
 0x64112462=environments\multiplayer\bonanza\ac\ambience\events\amb_bonanza_ac_int_backside_03_in
 0x2761E560=environments\multiplayer\bonanza\ac\ambience\events\amb_bonanza_ac_int_backside_03_out
 0x13351E7E=environments\multiplayer\bonanza\ac\ambience\events\amb_bonanza_ac_int_backside_01_in
@@ -5854,6 +5862,7 @@
 0x94C30704=environments\multiplayer\ravine\ss\ambience\events\amb_ravine_waterfall_loop_out
 0xF1210C71=environments\multiplayer\ravine\ac\ambience\events\amb_ravine_ac_ext_west_in
 0x9DB0F73=environments\multiplayer\ravine\ac\ambience\events\amb_ravine_ac_ext_west_out
+0xC94EB35D=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a51_ext_reflect_geometry
 0x6C476E3F=environments\multiplayer\ravine\ac\ambience\events\amb_ravine_ac_ravine_in
 0x52405341=environments\multiplayer\ravine\ac\ambience\events\amb_ravine_ac_ravine_out
 0xF9355E6F=environments\multiplayer\ravine\ac\ambience\events\amb_ravine_ac_large_cave_in
@@ -5948,6 +5957,7 @@
 0x907E99F2=environments\multiplayer\gorevalley\sound_scenery\add_ons\ambience\events\amb_gore_valley_water_pipes_loops_out
 0x3838D3AE=environments\multiplayer\gorevalley\sound_scenery\add_ons\ambience\events\amb_gore_valley_water_pipes_one_offs_in
 0xF95FB5B4=environments\multiplayer\gorevalley\sound_scenery\add_ons\ambience\events\amb_gore_valley_water_pipes_one_offs_out
+0xE4F16058=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a_rr01_hall_01
 0x323DA66B=environments\multiplayer\gorevalley\base_airs\events\amb_gorevalley_area_01_ac_base_interior_garage_in
 0x5605B6C5=environments\multiplayer\gorevalley\base_airs\events\amb_gorevalley_area_01_ac_base_interior_garage_out
 0x57A49FD8=environments\multiplayer\gorevalley\base_airs\events\amb_gorevalley_area_01_ac_base_interior_med_room_in
@@ -10619,6 +10629,7 @@
 0x682742D1=mission\m20_start
 0x290EC52E=environments\solo\m020\amb_m20_ac\ambience\events\amb_m20_area02_in
 0xD7A275EC=environments\solo\m020\amb_m20_ac\ambience\events\amb_m20_area02_out
+0xCF1B600D=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a_rr02_cave_01
 0x290EC52F=environments\solo\m020\amb_m20_ac\ambience\events\amb_m20_area03_in
 0xD7A275ED=environments\solo\m020\amb_m20_ac\ambience\events\amb_m20_area03_out
 0x1E5C6252=mission\m20_vista
@@ -11184,6 +11195,7 @@
 0x6D6A161=environments\solo\m010\amb_base_airs\events\amb_m10_room_13_pre_elevator_out
 0x39531CD8=environments\solo\m010\amb_base_airs\events\amb_m10_room_elevator_bottom_in
 0x4DE62156=environments\solo\m010\amb_base_airs\events\amb_m10_room_elevator_bottom_out
+0xEAFA7E67=dsp_effects\reverbs\halo_4_presets\m10\specific\m10_elevator_shaft
 0x5051F39E=environments\solo\m010\amb_base_airs\events\amb_m10_room_elevator_middle_in
 0x26F1C830=environments\solo\m010\amb_base_airs\events\amb_m10_room_elevator_middle_out
 0xF5C7314A=environments\solo\m010\ics\ics_m10_wind_loop_in_03
@@ -11224,6 +11236,7 @@
 0xB8C2E82E=environments\solo\m010\amb_base_airs\events\amb_m10_room_30_inner_out
 0x776E36D3=environments\solo\m010\amb_base_airs\events\amb_m10_room_31_hallway_in
 0xC5CBC8FD=environments\solo\m010\amb_base_airs\events\amb_m10_room_31_hallway_out
+0xC82DDF53=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a71_gravity_10
 0x1DCEA063=environments\solo\m010\amb_base_airs\events\amb_m10_room_32_airlock_in
 0x3D3B42B5=environments\solo\m010\amb_base_airs\events\amb_m10_room_32_airlock_out
 0xDE8C0780=environments\solo\m010\amb_base_airs\events\amb_m10_room_33_outerspace_in
@@ -11249,6 +11262,7 @@
 0xAB100D26=environments\solo\m010\amb_base_airs\events\amb_m10_room_42_hallway_to_final_room_out
 0x2EDA1CD0=environments\solo\m010\amb_base_airs\events\amb_m10_room_43_final_room_in
 0xBEA8426A=environments\solo\m010\amb_base_airs\events\amb_m10_room_43_final_room_out
+0x8399EB56=dsp_effects\reverbs\halo_4_presets\m10\general\m10_room_tiny
 0x92583973=environments\solo\m010\amb_base_airs\events\m10_cryo_tube_int_01_in
 0xDDB0461D=environments\solo\m010\amb_base_airs\events\m10_cryo_tube_int_01_out
 0xA1A5A3E1=storm\props\unsc\unsc_fud_mediumcrate001\prop_unsc_fud_mediumcrate001_default_material_collision_small
@@ -11747,6 +11761,7 @@
 0x91F9AB1A=dialog\mission\m30\m30_delrio_transmission_full_00104i_pip
 0x7B20198D=dialog\mission\m30\m30_delrio_transmission_full_00104j_pip
 0x28865A8A=dialog\mission\m30\m30_pylontwo_elevator_ride_00105_pip
+0xE6171089=dsp_effects\reverbs\halo_4_presets\52_wwise_room_reverb_share\a82_cryptum_default
 0x8E0673C6=environments\solo\m030\amb_m30_beta\amb_m30_beta_ac\ambience\events\amb_m30_room_66_donut_start_in
 0x592767B0=environments\solo\m030\amb_m30_beta\amb_m30_beta_ac\ambience\events\amb_m30_room_66_donut_start_out
 0x7B2587CC=mission\m30_cryptum
@@ -14674,6 +14689,7 @@
 0x37E2CE93=environments\multiplayer\wraparound\ambience\events\amb_wraparound_paseair_area_06_out
 0x527BB10=environments\multiplayer\wraparound\ambience\events\amb_wraparound_paseair_area_03_in
 0x37E2CE96=environments\multiplayer\wraparound\ambience\events\amb_wraparound_paseair_area_03_out
+0xF0FBE462=dsp_effects\reverbs\halo_4_presets\51_izotope_hybrid_reverb_share\a_hr01_hall_01
 0x527BB14=environments\multiplayer\wraparound\ambience\events\amb_wraparound_paseair_area_07_in
 0x37E2CE92=environments\multiplayer\wraparound\ambience\events\amb_wraparound_paseair_area_07_out
 0x527BB17=environments\multiplayer\wraparound\ambience\events\amb_wraparound_paseair_area_04_in
