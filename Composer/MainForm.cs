@@ -91,7 +91,7 @@ namespace Composer
 
         private void fileTree_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if (e.Node != null && e.Node.Tag is SoundPackFolder)
+            if (e.Node != null && e.Node.Nodes.Count > 0)
             {
                 extractFile.Text = "Extract Selected Folder...";
                 extractFile.Enabled = true;
@@ -110,6 +110,21 @@ namespace Composer
 
         private void extractFile_Click(object sender, EventArgs e)
         {
+            if (fileTree.SelectedNode == null)
+                return;
+
+            if (fileTree.SelectedNode.Nodes.Count > 0)
+            {
+                // Folder
+                string extractPath = AskForExtractionFolder();
+                if (extractPath != null)
+                {
+                    ExtractFolder(fileTree.SelectedNode, extractPath);
+                    MessageBox.Show("Folder extracted successfully!", _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                return;
+            }
+
             SoundFileInfo info = GetSoundInfo(fileTree.SelectedNode);
             if (info == null)
                 return;
@@ -129,10 +144,7 @@ namespace Composer
                 }
                 else
                 {
-                    // Read the RIFX data
-                    info.Reader.SeekTo(info.Offset);
-                    RIFX rifx = new RIFX(info.Reader, info.Size);
-
+                    RIFX rifx = ReadRIFX(info);
                     switch (info.Format)
                     {
                         case SoundFormat.XWMA:
@@ -143,27 +155,12 @@ namespace Composer
                                     return;
                                 }
 
-                                if (compressXwma.Checked)
-                                {
-                                    // Get the file extension based upon the selected compression format
-                                    string extension = (string)xwmaCompression.SelectedItem;
-                                    extension = extension.Remove(extension.IndexOf(' '));
+                                string extension = GetOutputExtension(info.Format);
+                                string extractPath = AskForDestinationFile("Save " + extension.ToUpper() + " File", extension.ToUpper() + " Files|*." + extension, fileName, extension);
+                                if (extractPath == null)
+                                    return;
 
-                                    string extractPath = AskForDestinationFile("Save " + extension + " File", extension + " Files|*." + extension.ToLower(), fileName, extension.ToLower());
-                                    if (extractPath == null)
-                                        return;
-
-                                    ExtractSound(info, rifx, extractPath, compressXwma.Checked);
-                                }
-                                else
-                                {
-                                    // Just extract a WAV
-                                    string extractPath = AskForDestinationFile("Save WAV File", "WAV Files|*.wav", fileName, "");
-                                    if (extractPath == null)
-                                        return;
-
-                                    ExtractSound(info, rifx, extractPath, compressXwma.Checked);
-                                }
+                                ExtractSound(info, rifx, extractPath, compressXwma.Checked);
                             }
                             break;
                         case SoundFormat.XMA:
@@ -204,10 +201,10 @@ namespace Composer
             if (outPath == null)
                 return;
 
-            /*foreach (SoundPackFolder folder in _soundbankPack.Folders)
-                ExtractFolder(folder, outPath);*/
+            foreach (TreeNode node in fileTree.Nodes)
+                ExtractFolder(node, outPath);
 
-            MessageBox.Show("BROKEN: FIX!"/*"All files extracted successfully!"*/, _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("All files extracted successfully!", _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void convertFiles_CheckedChanged(object sender, EventArgs e)
@@ -243,7 +240,7 @@ namespace Composer
         private string AskForExtractionFolder()
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.Description = "Select the folder to store extracted files to.";
+            fbd.Description = "Select the folder to store extracted files and folders to. New folders will be created for you.";
             fbd.ShowNewFolderButton = true;
             if (fbd.ShowDialog() == DialogResult.Cancel)
                 return null;
@@ -418,7 +415,7 @@ namespace Composer
             {
                 // Just add a leaf node
                 string extension = GetFormatExtension(_soundsFound[0].Format);
-                AddNodeAsync(eventName + extension, 1, _soundsFound[0]);
+                AddNodeAsync(eventName + '.' + extension, 1, _soundsFound[0]);
             }
             else
             {
@@ -430,7 +427,7 @@ namespace Composer
                 {
                     string folderName = Path.GetFileName(eventName);
                     string extension = GetFormatExtension(info.Format);
-                    AddNodeAsync(eventName + '/' + folderName + '_' + info.ID.ToString("X8") + extension, 1, info);
+                    AddNodeAsync(eventName + '/' + folderName + '_' + info.ID.ToString("X8") + '.' + extension, 1, info);
                 }
             }
         }
@@ -453,6 +450,12 @@ namespace Composer
             return node.Tag as SoundFileInfo;
         }
 
+        private static RIFX ReadRIFX(SoundFileInfo info)
+        {
+            info.Reader.SeekTo(info.Offset);
+            return new RIFX(info.Reader, info.Size);
+        }
+
         /// <summary>
         /// Retrieves the file extension for a sound format.
         /// </summary>
@@ -463,13 +466,39 @@ namespace Composer
             switch (format)
             {
                 case SoundFormat.WwiseOGG:
-                    return ".ogg";
+                    return "ogg";
                 case SoundFormat.XMA:
-                    return ".xma";
+                    return "xma";
                 case SoundFormat.XWMA:
-                    return ".xwma";
+                    return "xwma";
                 default:
-                    return ".wem";
+                    return "wem";
+            }
+        }
+
+        private string GetOutputExtension(SoundFormat format)
+        {
+            switch (format)
+            {
+                case SoundFormat.WwiseOGG:
+                    return "ogg";
+                case SoundFormat.XMA:
+                    return "wav";
+                case SoundFormat.XWMA:
+                    {
+                        if (compressXwma.Checked)
+                        {
+                            // Get the file extension based upon the selected compression format
+                            string extension = (string)xwmaCompression.SelectedItem;
+                            return extension.Remove(extension.IndexOf(' ')).ToLowerInvariant();
+                        }
+                        else
+                        {
+                            return "wav";
+                        }
+                    }
+                default:
+                    return "bin";
             }
         }
 
@@ -533,6 +562,41 @@ namespace Composer
                 case SoundFormat.WwiseOGG:
                     SoundExtraction.ExtractWwiseToOGG(info.Reader, info.Offset, info.Size, extractPath);
                     break;
+            }
+        }
+
+        private void ExtractFolder(TreeNode folder, string extractPath)
+        {
+            // Create a directory for the folder itself
+            string folderPath = Path.Combine(extractPath, folder.Text);
+            Directory.CreateDirectory(folderPath);
+
+            // Recursively extract everything
+            foreach (TreeNode node in folder.Nodes)
+            {
+                try
+                {
+                    if (node.Nodes.Count > 0)
+                    {
+                        ExtractFolder(node, folderPath);
+                    }
+                    else
+                    {
+                        SoundFileInfo info = GetSoundInfo(node);
+                        if (info == null)
+                            continue;
+
+                        RIFX rifx = ReadRIFX(info);
+                        string extension = GetOutputExtension(info.Format);
+                        string filePath = Path.ChangeExtension(Path.Combine(folderPath, node.Text), extension);
+                        ExtractSound(info, rifx, filePath, compressXwma.Checked);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // FIXME: A catch-all like this is bad practice
+                    Debug.WriteLine(ex);
+                }
             }
         }
     }
