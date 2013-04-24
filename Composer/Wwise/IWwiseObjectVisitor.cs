@@ -16,6 +16,7 @@ namespace Composer.Wwise
         void Visit(SoundBankAction action);
         void Visit(SoundBankEvent ev);
         void Visit(SoundBankSequenceContainer container);
+        void Visit(SoundBankSwitchContainer container);
         void Visit(SoundBankMusicPlaylist playlist);
         void Visit(SoundBankMusicSegment segment);
         void Visit(SoundBankMusicTrack track);

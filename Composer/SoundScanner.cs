@@ -125,6 +125,13 @@ namespace Composer
                 _objects.Dispatch(id, this);
         }
 
+        public void Visit(SoundBankSwitchContainer container)
+        {
+            // Visit each child in the container
+            foreach (uint id in container.ChildIDs)
+                _objects.Dispatch(id, this);
+        }
+
         public void Visit(SoundBankMusicPlaylist playlist)
         {
             // Visit each segment in the playlist

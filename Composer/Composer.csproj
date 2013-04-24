@@ -80,6 +80,7 @@
     <Compile Include="Wwise\SoundBankMusicSwitchContainer.cs" />
     <Compile Include="Wwise\SoundBankMusicTrack.cs" />
     <Compile Include="Wwise\SoundBankSequenceContainer.cs" />
+    <Compile Include="Wwise\SoundBankSwitchContainer.cs" />
     <Compile Include="Wwise\SoundBankVoice.cs" />
     <Compile Include="Wwise\SoundInfo.cs" />
     <Compile Include="Wwise\SoundPack.cs" />

@@ -198,6 +198,10 @@ namespace Composer.Wwise
                         obj = new SoundBankSequenceContainer(reader, id);
                         break;
 
+                    case ObjectType.SwitchContainer:
+                        obj = new SoundBankSwitchContainer(reader, id);
+                        break;
+
                     case ObjectType.MusicPlaylistContainer:
                         obj = new SoundBankMusicPlaylist(reader, id);
                         break;
