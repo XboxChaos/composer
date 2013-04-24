@@ -43,12 +43,18 @@
             this.openSoundstream = new System.Windows.Forms.Button();
             this.soundstreamPath = new System.Windows.Forms.TextBox();
             this.loadFromFolder = new System.Windows.Forms.Button();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.progressBar = new System.Windows.Forms.ToolStripProgressBar();
+            this.loadingControls = new System.Windows.Forms.Panel();
             this.controls.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
+            this.loadingControls.SuspendLayout();
             this.SuspendLayout();
             // 
             // openSoundbank
             // 
-            this.openSoundbank.Location = new System.Drawing.Point(12, 41);
+            this.openSoundbank.Location = new System.Drawing.Point(0, 29);
             this.openSoundbank.Name = "openSoundbank";
             this.openSoundbank.Size = new System.Drawing.Size(149, 23);
             this.openSoundbank.TabIndex = 2;
@@ -60,7 +66,7 @@
             // 
             this.soundbankPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.soundbankPath.Location = new System.Drawing.Point(167, 43);
+            this.soundbankPath.Location = new System.Drawing.Point(155, 31);
             this.soundbankPath.Name = "soundbankPath";
             this.soundbankPath.ReadOnly = true;
             this.soundbankPath.Size = new System.Drawing.Size(369, 20);
@@ -77,7 +83,7 @@
             this.fileTree.Location = new System.Drawing.Point(0, 0);
             this.fileTree.Name = "fileTree";
             this.fileTree.SelectedImageIndex = 0;
-            this.fileTree.Size = new System.Drawing.Size(524, 232);
+            this.fileTree.Size = new System.Drawing.Size(524, 228);
             this.fileTree.TabIndex = 4;
             this.fileTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.fileTree_AfterSelect);
             this.fileTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.fileTree_NodeMouseDoubleClick);
@@ -93,7 +99,7 @@
             // 
             this.extractFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.extractFile.Enabled = false;
-            this.extractFile.Location = new System.Drawing.Point(0, 238);
+            this.extractFile.Location = new System.Drawing.Point(0, 234);
             this.extractFile.Name = "extractFile";
             this.extractFile.Size = new System.Drawing.Size(149, 23);
             this.extractFile.TabIndex = 5;
@@ -104,7 +110,7 @@
             // extractAll
             // 
             this.extractAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.extractAll.Location = new System.Drawing.Point(155, 238);
+            this.extractAll.Location = new System.Drawing.Point(155, 234);
             this.extractAll.Name = "extractAll";
             this.extractAll.Size = new System.Drawing.Size(149, 23);
             this.extractAll.TabIndex = 6;
@@ -118,12 +124,13 @@
             this.convertFiles.AutoSize = true;
             this.convertFiles.Checked = true;
             this.convertFiles.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.convertFiles.Location = new System.Drawing.Point(0, 267);
+            this.convertFiles.Location = new System.Drawing.Point(0, 263);
             this.convertFiles.Name = "convertFiles";
             this.convertFiles.Size = new System.Drawing.Size(157, 17);
             this.convertFiles.TabIndex = 7;
             this.convertFiles.Text = "Convert files after extraction";
             this.convertFiles.UseVisualStyleBackColor = true;
+            this.convertFiles.CheckedChanged += new System.EventHandler(this.convertFiles_CheckedChanged);
             // 
             // controls
             // 
@@ -139,7 +146,7 @@
             this.controls.Enabled = false;
             this.controls.Location = new System.Drawing.Point(12, 99);
             this.controls.Name = "controls";
-            this.controls.Size = new System.Drawing.Size(524, 286);
+            this.controls.Size = new System.Drawing.Size(524, 282);
             this.controls.TabIndex = 8;
             // 
             // xwmaCompression
@@ -150,7 +157,7 @@
             this.xwmaCompression.Items.AddRange(new object[] {
             "FLAC (lossless, medium size)",
             "MP3 (lossy, small size)"});
-            this.xwmaCompression.Location = new System.Drawing.Point(300, 265);
+            this.xwmaCompression.Location = new System.Drawing.Point(300, 261);
             this.xwmaCompression.Name = "xwmaCompression";
             this.xwmaCompression.Size = new System.Drawing.Size(181, 21);
             this.xwmaCompression.TabIndex = 9;
@@ -161,7 +168,7 @@
             this.compressXwma.AutoSize = true;
             this.compressXwma.Checked = true;
             this.compressXwma.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.compressXwma.Location = new System.Drawing.Point(163, 267);
+            this.compressXwma.Location = new System.Drawing.Point(163, 263);
             this.compressXwma.Name = "compressXwma";
             this.compressXwma.Size = new System.Drawing.Size(131, 17);
             this.compressXwma.TabIndex = 8;
@@ -171,7 +178,7 @@
             // 
             // openSoundstream
             // 
-            this.openSoundstream.Location = new System.Drawing.Point(12, 70);
+            this.openSoundstream.Location = new System.Drawing.Point(0, 58);
             this.openSoundstream.Name = "openSoundstream";
             this.openSoundstream.Size = new System.Drawing.Size(149, 23);
             this.openSoundstream.TabIndex = 9;
@@ -183,7 +190,7 @@
             // 
             this.soundstreamPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.soundstreamPath.Location = new System.Drawing.Point(167, 72);
+            this.soundstreamPath.Location = new System.Drawing.Point(155, 60);
             this.soundstreamPath.Name = "soundstreamPath";
             this.soundstreamPath.ReadOnly = true;
             this.soundstreamPath.Size = new System.Drawing.Size(369, 20);
@@ -193,7 +200,7 @@
             // 
             this.loadFromFolder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.loadFromFolder.Location = new System.Drawing.Point(12, 12);
+            this.loadFromFolder.Location = new System.Drawing.Point(0, 0);
             this.loadFromFolder.Name = "loadFromFolder";
             this.loadFromFolder.Size = new System.Drawing.Size(524, 23);
             this.loadFromFolder.TabIndex = 11;
@@ -201,22 +208,61 @@
             this.loadFromFolder.UseVisualStyleBackColor = true;
             this.loadFromFolder.Click += new System.EventHandler(this.loadFromFolder_Click);
             // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.statusLabel,
+            this.progressBar});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 392);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(548, 22);
+            this.statusStrip1.TabIndex = 12;
+            this.statusStrip1.Text = "statusBar";
+            // 
+            // statusLabel
+            // 
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(381, 17);
+            this.statusLabel.Spring = true;
+            this.statusLabel.Text = "Ready";
+            this.statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // progressBar
+            // 
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(150, 16);
+            // 
+            // loadingControls
+            // 
+            this.loadingControls.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.loadingControls.Controls.Add(this.loadFromFolder);
+            this.loadingControls.Controls.Add(this.soundstreamPath);
+            this.loadingControls.Controls.Add(this.openSoundstream);
+            this.loadingControls.Controls.Add(this.soundbankPath);
+            this.loadingControls.Controls.Add(this.openSoundbank);
+            this.loadingControls.Location = new System.Drawing.Point(12, 12);
+            this.loadingControls.Name = "loadingControls";
+            this.loadingControls.Size = new System.Drawing.Size(524, 80);
+            this.loadingControls.TabIndex = 13;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(548, 397);
-            this.Controls.Add(this.loadFromFolder);
-            this.Controls.Add(this.soundstreamPath);
-            this.Controls.Add(this.openSoundstream);
-            this.Controls.Add(this.soundbankPath);
+            this.ClientSize = new System.Drawing.Size(548, 414);
+            this.Controls.Add(this.loadingControls);
+            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.controls);
-            this.Controls.Add(this.openSoundbank);
             this.MinimumSize = new System.Drawing.Size(564, 405);
             this.Name = "MainForm";
             this.Text = "Composer";
             this.controls.ResumeLayout(false);
             this.controls.PerformLayout();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
+            this.loadingControls.ResumeLayout(false);
+            this.loadingControls.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -237,6 +283,10 @@
         private System.Windows.Forms.Button loadFromFolder;
         private System.Windows.Forms.CheckBox compressXwma;
         private System.Windows.Forms.ComboBox xwmaCompression;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripProgressBar progressBar;
+        private System.Windows.Forms.ToolStripStatusLabel statusLabel;
+        private System.Windows.Forms.Panel loadingControls;
     }
 }
 

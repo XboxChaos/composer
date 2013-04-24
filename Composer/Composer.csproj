@@ -79,12 +79,14 @@
     <Compile Include="Wwise\SoundBankMusicSegment.cs" />
     <Compile Include="Wwise\SoundBankMusicSwitchContainer.cs" />
     <Compile Include="Wwise\SoundBankMusicTrack.cs" />
+    <Compile Include="Wwise\SoundBankSequenceContainer.cs" />
     <Compile Include="Wwise\SoundBankVoice.cs" />
     <Compile Include="Wwise\SoundInfo.cs" />
     <Compile Include="Wwise\SoundPack.cs" />
     <Compile Include="Wwise\SoundPackFile.cs" />
     <Compile Include="Wwise\SoundPackFolder.cs" />
     <Compile Include="TreeViewBuilder.cs" />
+    <Compile Include="Wwise\SoundPath.cs" />
     <Compile Include="Wwise\StateGroup.cs" />
     <Compile Include="Wwise\WwiseObjectCollection.cs" />
     <EmbeddedResource Include="MainForm.resx">

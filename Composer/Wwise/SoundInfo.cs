@@ -62,7 +62,13 @@ namespace Composer.Wwise
             // TODO: actually store the parameter values instead of skipping over them
             reader.Skip(numParameters);
             reader.Skip(numParameters * 4);
-            reader.Skip(1);
+
+            sbyte unknownCount = reader.ReadSByte();
+            if (unknownCount > 0)
+            {
+                reader.Skip(unknownCount);
+                reader.Skip(unknownCount * 8);
+            }
 
             ReadPositioningInfo(reader);
 
@@ -110,6 +116,10 @@ namespace Composer.Wwise
         public bool FollowListenerOrientation { get; private set; }
         public bool UpdateEachFrame { get; private set; }
 
+        public SoundPathPoint[] PathPoints { get; private set; }
+        public SoundPath[] Paths { get; private set; }
+        public SoundPathRandomRange[] PathRandomness { get; private set; }
+
         public bool OverrideParentGameDefinedAuxiliarySendSettings { get; private set; }
         public bool UseGameDefinedAuxiliarySends { get; private set; }
         public bool OverrideParentUserDefinedAuxiliarySendSettings { get; private set; }
@@ -148,12 +158,44 @@ namespace Composer.Wwise
                     Loop = (reader.ReadByte() != 0);
                     TransitionTime = reader.ReadUInt32();
                     FollowListenerOrientation = (reader.ReadByte() != 0);
+
+                    ReadPaths(reader);
                 }
                 else if (PositionSourceType == SoundPositionSourceType.GameDefined)
                 {
                     UpdateEachFrame = (reader.ReadByte() != 0);
                 }
             }
+        }
+
+        private void ReadPaths(IReader reader)
+        {
+            ReadPathPoints(reader);
+            ReadPathDefinitions(reader);
+            ReadPathRandomness(reader);
+        }
+
+        private void ReadPathPoints(IReader reader)
+        {
+            int numPathPoints = reader.ReadInt32();
+            PathPoints = new SoundPathPoint[numPathPoints];
+            for (int i = 0; i < numPathPoints; i++)
+                PathPoints[i] = new SoundPathPoint(reader);
+        }
+
+        private void ReadPathDefinitions(IReader reader)
+        {
+            int numPaths = reader.ReadInt32();
+            Paths = new SoundPath[numPaths];
+            for (int i = 0; i < numPaths; i++)
+                Paths[i] = new SoundPath(reader);
+        }
+
+        private void ReadPathRandomness(IReader reader)
+        {
+            PathRandomness = new SoundPathRandomRange[Paths.Length];
+            for (int i = 0; i < Paths.Length; i++)
+                PathRandomness[i] = new SoundPathRandomRange(reader);
         }
 
         private void ReadUserDefinedAuxiliarySends(IReader reader)

@@ -194,6 +194,10 @@ namespace Composer.Wwise
                         obj = ev;
                         break;
 
+                    case ObjectType.SequenceContainer:
+                        obj = new SoundBankSequenceContainer(reader, id);
+                        break;
+
                     case ObjectType.MusicPlaylistContainer:
                         obj = new SoundBankMusicPlaylist(reader, id);
                         break;

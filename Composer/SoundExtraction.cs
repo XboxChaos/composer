@@ -183,6 +183,30 @@ namespace Composer
         }
 
         /// <summary>
+        /// Extracts an xWMA sound and converts it to another format.
+        /// </summary>
+        /// <param name="reader">The stream to read from.</param>
+        /// <param name="offset">The offset of the data to extract.</param>
+        /// <param name="rifx">The RIFX data for the sound.</param>
+        /// <param name="outPath">The path of the file to save to. The file extension will determine the output format.</param>
+        public static void ExtractAndConvertXWMA(IReader reader, int offset, RIFX rifx, string outPath)
+        {
+            // Extract a WAV to a temporary file and then convert it
+            string tempPath = Path.GetTempFileName();
+            try
+            {
+                ExtractXWMAToWAV(reader, offset, rifx, tempPath);
+                ConvertFile(tempPath, outPath);
+            }
+            finally
+            {
+                // Delete the temporary file
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
+        }
+
+        /// <summary>
         /// Extracts a Wwise OGG and converts it to a "regular" OGG file.
         /// </summary>
         /// <param name="reader">The stream to read from.</param>
@@ -219,11 +243,12 @@ namespace Composer
         }
 
         /// <summary>
-        /// Compresses a WAV file.
+        /// Converts an audio file from one format to another.
+        /// The output format is determined based upon the file extension.
         /// </summary>
-        /// <param name="wavPath">The path of the WAV file to compress.</param>
+        /// <param name="wavPath">The path of the audio file to convert.</param>
         /// <param name="outPath">The path of the file to save to.</param>
-        public static void CompressWAV(string wavPath, string outPath)
+        public static void ConvertFile(string wavPath, string outPath)
         {
             RunProgramSilently("Helpers/ffmpeg.exe",
                 string.Format("-y -v quiet -i \"{0}\" \"{1}\"", wavPath, outPath),
