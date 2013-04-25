@@ -410,8 +410,11 @@ namespace Composer
         {
             string eventName = _soundNames.FindName(sourceEvent.ID);
             _totalSounds += _soundsFound.Count;
+
+            if (eventName == null)
+                eventName = "unknown/" + sourceEvent.ID.ToString("X8");
             
-            if (eventName != null && _soundsFound.Count == 1)
+            if (_soundsFound.Count == 1)
             {
                 // Just add a leaf node
                 string extension = GetFormatExtension(_soundsFound[0].Format);
@@ -419,9 +422,6 @@ namespace Composer
             }
             else
             {
-                if (eventName == null)
-                    eventName = "unknown";
-
                 // Add the sounds to a folder
                 foreach (SoundFileInfo info in _soundsFound)
                 {

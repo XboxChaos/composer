@@ -54,8 +54,8 @@ namespace Composer.Wwise
         {
             ID = id;
 
-            Scope = (SoundBankActionScope)reader.ReadSByte();
             Type = (SoundBankActionType)reader.ReadSByte();
+            Scope = (SoundBankActionScope)reader.ReadSByte();
             ObjectID = reader.ReadUInt32();
 
             // TODO: read parameters and state/switch group IDs
