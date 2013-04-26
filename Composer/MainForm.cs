@@ -220,7 +220,9 @@ namespace Composer
 
         private void fileTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            extractFile_Click(sender, e);
+            // Offer to extract the file if it's a sound
+            if (e.Node.Nodes.Count == 0)
+                extractFile_Click(sender, e);
         }
 
         private string AskForPackFile(string name)
@@ -326,7 +328,7 @@ namespace Composer
                 worker.ReportProgress(ObjectLoadProgressWeight + i * EventLoadProgressWeight / _soundbanks.Count, "Scanning sound bank " + _soundbanks[i].ID.ToString("X8") + ".bnk...");
                 foreach (SoundBankEvent ev in _soundbanks[i].Events)
                 {
-                    scanner.ScanEvent(ev);
+                    scanner.ScanEvent(_soundbanks[i], ev);
                     AddSoundNodes(ev);
                     _soundsFound.Clear();
                 }
@@ -412,7 +414,7 @@ namespace Composer
             _totalSounds += _soundsFound.Count;
 
             if (eventName == null)
-                eventName = "unknown/" + sourceEvent.ID.ToString("X8");
+                eventName = "unnamed/" + sourceEvent.ID.ToString("X8");
             
             if (_soundsFound.Count == 1)
             {
@@ -524,13 +526,13 @@ namespace Composer
                     switch (magic)
                     {
                         case 0x52494658: // RIFX - Embedded sound file
-                            scanner.RegisterObject(file);
+                            scanner.RegisterGlobalObject(file);
                             break;
 
                         case 0x424B4844: // BKHD - Sound bank
                             reader.SeekTo(file.Offset);
                             SoundBank bank = new SoundBank(reader, file.Size);
-                            scanner.RegisterObjects(bank.Objects);
+                            scanner.RegisterSoundBank(bank);
                             _soundbanks.Add(bank);
                             break;
                     }

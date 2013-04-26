@@ -36,9 +36,10 @@ namespace Composer
     /// </summary>
     public class SoundScanner : IWwiseObjectVisitor
     {
-        private WwiseObjectCollection _objects = new WwiseObjectCollection();
-        private List<SoundBank> _banks = new List<SoundBank>();
+        private WwiseObjectCollection _globalObjects = new WwiseObjectCollection();
+        private Dictionary<uint, SoundBank> _soundBanks = new Dictionary<uint, SoundBank>();
         private SoundBankEvent _currentEvent = null;
+        private SoundBank _currentBank = null;
 
         /// <summary>
         /// Occurs when a SoundBankFile is found.
@@ -51,29 +52,31 @@ namespace Composer
         public EventHandler<SoundFileEventArgs<SoundPackFile>> FoundSoundPackFile;
 
         /// <summary>
-        /// Registers a Wwise object to be scanned.
+        /// Registers a sound bank with the scanner.
         /// </summary>
-        /// <param name="obj">The object to register.</param>
-        public void RegisterObject(IWwiseObject obj)
+        /// <param name="bank">A sound bank which sounds can be loaded from.</param>
+        public void RegisterSoundBank(SoundBank bank)
         {
-            _objects.Add(obj);
+            _soundBanks[bank.ID] = bank;
         }
 
         /// <summary>
-        /// Registers a collection of Wwise objects to be scanned.
+        /// Registers a bank-less object (e.g. one from soundstream.pck) with the scanner.
         /// </summary>
-        /// <param name="objects">The collection of objects to register.</param>
-        public void RegisterObjects(WwiseObjectCollection objects)
+        /// <param name="obj">The object to register.</param>
+        public void RegisterGlobalObject(IWwiseObject obj)
         {
-            _objects.Import(objects);
+            _globalObjects.Add(obj);
         }
 
         /// <summary>
         /// Scans a SoundBankEvent for sound files.
         /// </summary>
+        /// <param name="bank">The SoundBank that the event belongs to.</param>
         /// <param name="ev">The SoundBankEvent to scan.</param>
-        public void ScanEvent(SoundBankEvent ev)
+        public void ScanEvent(SoundBank bank, SoundBankEvent ev)
         {
+            _currentBank = bank;
             Visit(ev);
         }
 
@@ -94,7 +97,7 @@ namespace Composer
         public void Visit(SoundBankVoice voice)
         {
             // Jump to the audio file it references
-            _objects.Dispatch(voice.AudioID, this);
+            Dispatch(voice.AudioID, voice.SourceID);
         }
 
         public void Visit(SoundBankAction action)
@@ -106,7 +109,7 @@ namespace Composer
                 || action.Type == SoundBankActionType.UnMute)
             {
                 // Move to the object referenced by the action
-                _objects.Dispatch(action.ObjectID, this);
+                Dispatch(action.ObjectID);
             }
         }
 
@@ -115,48 +118,48 @@ namespace Composer
             // Scan each action in the event
             _currentEvent = ev;
             foreach (uint actionId in ev.ActionIDs)
-                _objects.Dispatch(actionId, this);
+                Dispatch(actionId);
         }
 
         public void Visit(SoundBankSequenceContainer container)
         {
             // Visit each child in the container
             foreach (uint id in container.ChildIDs)
-                _objects.Dispatch(id, this);
+                Dispatch(id);
         }
 
         public void Visit(SoundBankSwitchContainer container)
         {
             // Visit each child in the container
             foreach (uint id in container.ChildIDs)
-                _objects.Dispatch(id, this);
+                Dispatch(id);
         }
 
         public void Visit(SoundBankMusicPlaylist playlist)
         {
             // Visit each segment in the playlist
             foreach (uint id in playlist.SegmentIDs)
-                _objects.Dispatch(id, this);
+                Dispatch(id);
         }
 
         public void Visit(SoundBankMusicSegment segment)
         {
             // Visit each child track
             foreach (uint id in segment.ChildIDs)
-                _objects.Dispatch(id, this);
+                Dispatch(id);
         }
 
         public void Visit(SoundBankMusicTrack track)
         {
             // Jump to the audio file it references
-            _objects.Dispatch(track.AudioID, this);
+            Dispatch(track.AudioID, track.SourceID);
         }
 
         public void Visit(SoundBankMusicSwitchContainer container)
         {
             // Visit each segment in the container
             foreach (uint id in container.SegmentIDs)
-                _objects.Dispatch(id, this);
+                Dispatch(id);
         }
 
         /// <summary>
@@ -177,6 +180,23 @@ namespace Composer
         {
             if (FoundSoundPackFile != null)
                 FoundSoundPackFile(this, args);
+        }
+
+        private bool Dispatch(uint id)
+        {
+            return _currentBank.Objects.Dispatch(id, this);
+        }
+
+        private bool Dispatch(uint id, uint sourceId)
+        {
+            if (id != sourceId)
+            {
+                // If the ID and source ID are different, then the source ID is the ID of the sound bank
+                SoundBank bank;
+                if (_soundBanks.TryGetValue(sourceId, out bank) && bank.Objects.Dispatch(id, this))
+                    return true;
+            }
+            return _globalObjects.Dispatch(id, this);
         }
     }
 }
