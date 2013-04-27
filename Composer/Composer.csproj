@@ -97,6 +97,7 @@
     <Compile Include="Wwise\RTPC.cs" />
     <Compile Include="Wwise\SoundBank.cs" />
     <Compile Include="Wwise\SoundBankAction.cs" />
+    <Compile Include="Wwise\SoundBankActorMixer.cs" />
     <Compile Include="Wwise\SoundBankEvent.cs" />
     <Compile Include="Wwise\SoundBankFile.cs" />
     <Compile Include="Wwise\SoundBankMusicPlaylist.cs" />

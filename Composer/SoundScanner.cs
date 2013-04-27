@@ -117,36 +117,32 @@ namespace Composer
         {
             // Scan each action in the event
             _currentEvent = ev;
-            foreach (uint actionId in ev.ActionIDs)
-                Dispatch(actionId);
+            DispatchAll(ev.ActionIDs);
         }
 
         public void Visit(SoundBankSequenceContainer container)
         {
-            // Visit each child in the container
-            foreach (uint id in container.ChildIDs)
-                Dispatch(id);
+            DispatchAll(container.ChildIDs);
         }
 
         public void Visit(SoundBankSwitchContainer container)
         {
-            // Visit each child in the container
-            foreach (uint id in container.ChildIDs)
-                Dispatch(id);
+            DispatchAll(container.ChildIDs);
+        }
+
+        public void Visit(SoundBankActorMixer mixer)
+        {
+            DispatchAll(mixer.ChildIDs);
         }
 
         public void Visit(SoundBankMusicPlaylist playlist)
         {
-            // Visit each segment in the playlist
-            foreach (uint id in playlist.SegmentIDs)
-                Dispatch(id);
+            DispatchAll(playlist.SegmentIDs);
         }
 
         public void Visit(SoundBankMusicSegment segment)
         {
-            // Visit each child track
-            foreach (uint id in segment.ChildIDs)
-                Dispatch(id);
+            DispatchAll(segment.ChildIDs);
         }
 
         public void Visit(SoundBankMusicTrack track)
@@ -157,9 +153,7 @@ namespace Composer
 
         public void Visit(SoundBankMusicSwitchContainer container)
         {
-            // Visit each segment in the container
-            foreach (uint id in container.SegmentIDs)
-                Dispatch(id);
+            DispatchAll(container.SegmentIDs);
         }
 
         /// <summary>
@@ -185,6 +179,12 @@ namespace Composer
         private bool Dispatch(uint id)
         {
             return _currentBank.Objects.Dispatch(id, this);
+        }
+
+        private void DispatchAll(IEnumerable<uint> ids)
+        {
+            foreach (uint id in ids)
+                Dispatch(id);
         }
 
         private bool Dispatch(uint id, uint sourceId)

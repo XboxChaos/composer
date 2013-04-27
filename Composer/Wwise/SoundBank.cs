@@ -67,7 +67,7 @@ namespace Composer.Wwise
 
         /// <summary>
         /// The offset of the data area from the start of the sound bank.
-        /// Add this to a SoundBankFile's Offset to get its offset within the bank.
+        /// Add this to a SoundBankFile's Offset to get the file's offset within the bank.
         /// </summary>
         public int DataOffset { get; private set; }
 
@@ -200,6 +200,10 @@ namespace Composer.Wwise
 
                     case ObjectType.SwitchContainer:
                         obj = new SoundBankSwitchContainer(reader, id);
+                        break;
+
+                    case ObjectType.ActorMixer:
+                        obj = new SoundBankActorMixer(reader, id);
                         break;
 
                     case ObjectType.MusicPlaylistContainer:

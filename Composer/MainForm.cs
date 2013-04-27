@@ -821,7 +821,7 @@ namespace Composer
 
         private void soundPosition_Scroll(object sender, EventArgs e)
         {
-            if (_currentChannel != null)
+            if (soundPosition.Capture && _currentChannel != null)
                 _currentChannel.setPosition((uint)soundPosition.Value, FMOD.TIMEUNIT.MS);
         }
     }
