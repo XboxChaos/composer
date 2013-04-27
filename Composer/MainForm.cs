@@ -30,6 +30,16 @@ namespace Composer
         private int _totalFiles = 0;
         private int _totalSounds = 0;
 
+        private FMOD.System _fmod = null;
+        private FMOD.Sound _currentSound = null;
+        private FMOD.Channel _currentChannel = null;
+        private TreeNode _currentNode = null;
+        private uint _currentLength = 0;
+        private string _currentName = null;
+        private string _currentPath = null;
+        private bool _playing = false;
+        private bool _paused = false;
+
         private const int ObjectLoadProgressWeight = 80;
         private const int EventLoadProgressWeight = 20;
 
@@ -45,11 +55,62 @@ namespace Composer
         public MainForm()
         {
             InitializeComponent();
+        }
 
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_currentSound != null)
+                    _currentSound.release();
+
+                if (_fmod != null)
+                    _fmod.release();
+
+                if (_currentPath != null && File.Exists(_currentPath))
+                    File.Delete(_currentPath);
+
+                if (components != null)
+                    components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
             _defaultTitle = Text;
             _soundNames = INILookupLoader.LoadFromFile("soundnames.lst");
 
             xwmaCompression.SelectedIndex = 0;
+
+            try
+            {
+                InitFMOD();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                return;
+            }
+        }
+
+        private void InitFMOD()
+        {
+            FMODAssert(FMOD.Factory.System_Create(ref _fmod));
+
+            uint version = 0;
+            FMODAssert(_fmod.getVersion(ref version));
+            if (version < FMOD.VERSION.number)
+            {
+                MessageBox.Show("Looks like your version of FMOD is out-of-date.\n\nYour version: " + version.ToString("X") + "\nRequired version: " + FMOD.VERSION.number.ToString("X") + "\n\nCheck your fmodex.dll file and try again.", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            FMODAssert(_fmod.init(32, FMOD.INITFLAGS.NORMAL, IntPtr.Zero));
         }
 
         private void openSoundbank_Click(object sender, EventArgs e)
@@ -91,12 +152,14 @@ namespace Composer
 
         private void fileTree_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if (e.Node != null && e.Node.Nodes.Count > 0)
+            bool isFolder = (e.Node != null && e.Node.Nodes.Count > 0);
+            bool isSound = (e.Node != null && e.Node.Tag is SoundFileInfo);
+            if (isFolder)
             {
                 extractFile.Text = "Extract Selected Folder...";
                 extractFile.Enabled = true;
             }
-            else if (e.Node != null && e.Node.Tag is SoundFileInfo)
+            else if (isSound)
             {
                 extractFile.Text = "Extract Selected File...";
                 extractFile.Enabled = true;
@@ -105,6 +168,17 @@ namespace Composer
             {
                 extractFile.Text = "Extract Selected File...";
                 extractFile.Enabled = false;
+            }
+
+            playSound.Enabled = isSound || _playing || (isFolder && _currentNode != null);
+            stopSound.Enabled = _playing;
+
+            if (!isFolder)
+            {
+                if (e.Node == _currentNode && _playing)
+                    playSound.Image = Properties.Resources.pause;
+                else
+                    playSound.Image = Properties.Resources.play;
             }
         }
 
@@ -220,9 +294,9 @@ namespace Composer
 
         private void fileTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            // Offer to extract the file if it's a sound
+            // Play the file if it's a sound
             if (e.Node.Nodes.Count == 0)
-                extractFile_Click(sender, e);
+                playSound_Click(sender, e);
         }
 
         private string AskForPackFile(string name)
@@ -600,6 +674,138 @@ namespace Composer
                     Debug.WriteLine(ex);
                 }
             }
+        }
+
+        private static void FMODAssert(FMOD.RESULT result)
+        {
+            if (result != FMOD.RESULT.OK)
+                throw new InvalidOperationException(FMOD.Error.String(result));
+        }
+
+        private void playSound_Click(object sender, EventArgs e)
+        {
+            TreeNode node = fileTree.SelectedNode;
+            if (node.Nodes.Count > 0)
+                node = _currentNode;
+
+            if (node == _currentNode && _currentChannel != null && _playing)
+            {
+                // Pause/unpause the sound
+                _currentChannel.setPaused(!_paused);
+
+                if (_paused)
+                    playSound.Image = Properties.Resources.pause;
+                else
+                    playSound.Image = Properties.Resources.play;
+
+                UpdatePlayer();
+                return;
+            }
+
+            stopSound_Click(this, e);
+
+            SoundFileInfo info = GetSoundInfo(node);
+            if (info == null)
+                return;
+
+            // Extract the sound to a temporary file
+            RIFX rifx = ReadRIFX(info);
+            string extractPath = Path.GetTempFileName();
+            ExtractSound(info, rifx, extractPath, false);
+
+            // Load it in, streaming it if it's anything but XMA
+            FMODAssert(_fmod.createSound(extractPath, FMOD.MODE.SOFTWARE | (info.Format == SoundFormat.XMA ? FMOD.MODE.CREATESAMPLE : FMOD.MODE.CREATESTREAM), ref _currentSound));
+
+            // Start the sound paused and set the volume
+            FMODAssert(_fmod.playSound(FMOD.CHANNELINDEX.FREE, _currentSound, true, ref _currentChannel));
+            _currentChannel.setVolume(GetCurrentVolume());
+
+            // Adjust the trackbar
+            FMODAssert(_currentSound.getLength(ref _currentLength, FMOD.TIMEUNIT.MS));
+            soundPosition.Maximum = (int)_currentLength;
+            soundPosition.Value = 0;
+            soundPosition.Enabled = true;
+
+            // Unpause it
+            _currentChannel.setPaused(false);
+            _currentNode = node;
+            _currentName = _currentNode.Text;
+            _currentPath = extractPath;
+            _playing = true;
+            playSound.Image = Properties.Resources.pause;
+            UpdatePlayer();
+        }
+
+        private void stopSound_Click(object sender, EventArgs e)
+        {
+            if (_currentChannel != null)
+                _currentChannel.stop();
+                
+            if (_currentSound != null)
+            {
+                _currentSound.release();
+                _currentSound = null;
+            }
+
+            if (_currentPath != null && File.Exists(_currentPath))
+                File.Delete(_currentPath);
+
+            UpdatePlayer();
+        }
+
+        private void volumeSlider_ValueChanged(object sender, EventArgs e)
+        {
+            if (_currentChannel != null)
+                _currentChannel.setVolume(GetCurrentVolume());
+        }
+
+        private float GetCurrentVolume()
+        {
+            return volumeSlider.Value / (float)volumeSlider.Maximum;
+        }
+
+        private void soundTimer_Tick(object sender, EventArgs e)
+        {
+            UpdatePlayer();
+        }
+
+        private void UpdatePlayer()
+        {
+            if (_currentChannel != null)
+            {
+                uint pos = 0;
+                _currentChannel.getPosition(ref pos, FMOD.TIMEUNIT.MS);
+                if (!soundPosition.Capture)
+                    soundPosition.Value = (int)pos;
+
+                _currentChannel.isPlaying(ref _playing);
+                _currentChannel.getPaused(ref _paused);
+
+                string action = _paused ? "Paused" : (_playing ? "Playing" : "Stopped");
+                statusLabel.Text = action + " " + FormatTime(pos) + " / " + FormatTime(_currentLength) + " - " + _currentName;
+
+                soundTimer.Enabled = _playing && !_paused;
+                stopSound.Enabled = _playing;
+                soundPosition.Enabled = _playing;
+                if (!_playing)
+                {
+                    soundPosition.Value = 0;
+                    playSound.Image = Properties.Resources.play;
+                }
+            }
+
+            _fmod.update();
+        }
+
+        private void soundPosition_ValueChanged(object sender, EventArgs e)
+        {
+            if (soundPosition.Capture && _currentChannel != null)
+                _currentChannel.setPosition((uint)soundPosition.Value, FMOD.TIMEUNIT.MS);
+        }
+
+        private static string FormatTime(uint ms)
+        {
+            return string.Format("{0}:{1:d2}.{2:d3}", ms / 1000 / 60, ms / 1000 % 60, ms % 1000);
         }
     }
 }

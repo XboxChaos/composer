@@ -7,19 +7,6 @@
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
         #region Windows Form Designer generated code
 
         /// <summary>
@@ -38,8 +25,12 @@
             this.extractAll = new System.Windows.Forms.Button();
             this.convertFiles = new System.Windows.Forms.CheckBox();
             this.controls = new System.Windows.Forms.Panel();
+            this.stopSound = new System.Windows.Forms.Button();
+            this.playSound = new System.Windows.Forms.Button();
             this.xwmaCompression = new System.Windows.Forms.ComboBox();
             this.compressXwma = new System.Windows.Forms.CheckBox();
+            this.soundPosition = new System.Windows.Forms.TrackBar();
+            this.volumeSlider = new System.Windows.Forms.TrackBar();
             this.openSoundstream = new System.Windows.Forms.Button();
             this.soundstreamPath = new System.Windows.Forms.TextBox();
             this.loadFromFolder = new System.Windows.Forms.Button();
@@ -47,7 +38,10 @@
             this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.progressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.loadingControls = new System.Windows.Forms.Panel();
+            this.soundTimer = new System.Windows.Forms.Timer(this.components);
             this.controls.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.soundPosition)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.volumeSlider)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.loadingControls.SuspendLayout();
             this.SuspendLayout();
@@ -83,7 +77,7 @@
             this.fileTree.Location = new System.Drawing.Point(0, 0);
             this.fileTree.Name = "fileTree";
             this.fileTree.SelectedImageIndex = 0;
-            this.fileTree.Size = new System.Drawing.Size(524, 228);
+            this.fileTree.Size = new System.Drawing.Size(524, 199);
             this.fileTree.TabIndex = 4;
             this.fileTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.fileTree_AfterSelect);
             this.fileTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.fileTree_NodeMouseDoubleClick);
@@ -137,17 +131,45 @@
             this.controls.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.controls.Controls.Add(this.stopSound);
+            this.controls.Controls.Add(this.playSound);
             this.controls.Controls.Add(this.xwmaCompression);
             this.controls.Controls.Add(this.compressXwma);
             this.controls.Controls.Add(this.convertFiles);
             this.controls.Controls.Add(this.extractAll);
             this.controls.Controls.Add(this.extractFile);
             this.controls.Controls.Add(this.fileTree);
+            this.controls.Controls.Add(this.soundPosition);
+            this.controls.Controls.Add(this.volumeSlider);
             this.controls.Enabled = false;
             this.controls.Location = new System.Drawing.Point(12, 99);
             this.controls.Name = "controls";
             this.controls.Size = new System.Drawing.Size(524, 282);
             this.controls.TabIndex = 8;
+            // 
+            // stopSound
+            // 
+            this.stopSound.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.stopSound.Enabled = false;
+            this.stopSound.Image = global::Composer.Properties.Resources.stop;
+            this.stopSound.Location = new System.Drawing.Point(29, 205);
+            this.stopSound.Name = "stopSound";
+            this.stopSound.Size = new System.Drawing.Size(23, 23);
+            this.stopSound.TabIndex = 11;
+            this.stopSound.UseVisualStyleBackColor = true;
+            this.stopSound.Click += new System.EventHandler(this.stopSound_Click);
+            // 
+            // playSound
+            // 
+            this.playSound.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.playSound.Enabled = false;
+            this.playSound.Image = global::Composer.Properties.Resources.play;
+            this.playSound.Location = new System.Drawing.Point(0, 205);
+            this.playSound.Name = "playSound";
+            this.playSound.Size = new System.Drawing.Size(23, 23);
+            this.playSound.TabIndex = 10;
+            this.playSound.UseVisualStyleBackColor = true;
+            this.playSound.Click += new System.EventHandler(this.playSound_Click);
             // 
             // xwmaCompression
             // 
@@ -175,6 +197,30 @@
             this.compressXwma.Text = "Compress xWMA files:";
             this.compressXwma.UseVisualStyleBackColor = true;
             this.compressXwma.CheckedChanged += new System.EventHandler(this.compressXwma_CheckedChanged);
+            // 
+            // soundPosition
+            // 
+            this.soundPosition.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.soundPosition.Enabled = false;
+            this.soundPosition.Location = new System.Drawing.Point(58, 205);
+            this.soundPosition.Name = "soundPosition";
+            this.soundPosition.Size = new System.Drawing.Size(356, 45);
+            this.soundPosition.TabIndex = 12;
+            this.soundPosition.TickStyle = System.Windows.Forms.TickStyle.None;
+            this.soundPosition.ValueChanged += new System.EventHandler(this.soundPosition_ValueChanged);
+            // 
+            // volumeSlider
+            // 
+            this.volumeSlider.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.volumeSlider.Location = new System.Drawing.Point(420, 205);
+            this.volumeSlider.Maximum = 100;
+            this.volumeSlider.Name = "volumeSlider";
+            this.volumeSlider.Size = new System.Drawing.Size(104, 45);
+            this.volumeSlider.TabIndex = 13;
+            this.volumeSlider.TickStyle = System.Windows.Forms.TickStyle.None;
+            this.volumeSlider.Value = 100;
+            this.volumeSlider.ValueChanged += new System.EventHandler(this.volumeSlider_ValueChanged);
             // 
             // openSoundstream
             // 
@@ -246,6 +292,11 @@
             this.loadingControls.Size = new System.Drawing.Size(524, 80);
             this.loadingControls.TabIndex = 13;
             // 
+            // soundTimer
+            // 
+            this.soundTimer.Interval = 10;
+            this.soundTimer.Tick += new System.EventHandler(this.soundTimer_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -256,9 +307,12 @@
             this.Controls.Add(this.controls);
             this.MinimumSize = new System.Drawing.Size(564, 405);
             this.Name = "MainForm";
-            this.Text = "Composer";
+            this.Text = "Composer - Halo 4 Audio Extractor";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.controls.ResumeLayout(false);
             this.controls.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.soundPosition)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.volumeSlider)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.loadingControls.ResumeLayout(false);
@@ -287,6 +341,11 @@
         private System.Windows.Forms.ToolStripProgressBar progressBar;
         private System.Windows.Forms.ToolStripStatusLabel statusLabel;
         private System.Windows.Forms.Panel loadingControls;
+        private System.Windows.Forms.Button stopSound;
+        private System.Windows.Forms.Button playSound;
+        private System.Windows.Forms.TrackBar soundPosition;
+        private System.Windows.Forms.TrackBar volumeSlider;
+        private System.Windows.Forms.Timer soundTimer;
     }
 }
 

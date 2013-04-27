@@ -92,6 +92,8 @@ namespace Composer
                 RunProgramSilently("Helpers/towav.exe", "\"" + Path.GetFileName(tempFile) + "\"", Path.GetDirectoryName(tempFile));
 
                 // Move the WAV to the destination path
+                if (File.Exists(outPath))
+                    File.Delete(outPath);
                 File.Move(Path.ChangeExtension(tempFile, "wav"), outPath);
             }
             finally
