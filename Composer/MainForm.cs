@@ -86,6 +86,7 @@ namespace Composer
             _soundNames = INILookupLoader.LoadFromFile("soundnames.lst");
 
             xwmaCompression.SelectedIndex = 0;
+            volumeSlider.Value = Properties.Settings.Default.Volume;
 
             try
             {
@@ -96,6 +97,11 @@ namespace Composer
                 MessageBox.Show(ex.ToString());
                 return;
             }
+        }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Properties.Settings.Default.Save();
         }
 
         private void InitFMOD()
@@ -140,10 +146,12 @@ namespace Composer
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             fbd.Description = "Select the folder to load soundbank.pck and soundstream.pck from. This is sound\\English(US) in Halo 4's extracted ISO.";
             fbd.ShowNewFolderButton = false;
+            fbd.SelectedPath = Properties.Settings.Default.LastImportDir;
             if (fbd.ShowDialog() == DialogResult.OK)
             {
                 LoadPackFile(Path.Combine(fbd.SelectedPath, "soundbank.pck"), soundbankPath, ref _soundbankReader, ref _soundbankPack);
                 LoadPackFile(Path.Combine(fbd.SelectedPath, "soundstream.pck"), soundstreamPath, ref _soundstreamReader, ref _soundstreamPack);
+                Properties.Settings.Default.LastImportDir = fbd.SelectedPath;
 
                 if (_soundbankPack != null && _soundstreamPack != null)
                     BuildFileTree();
@@ -173,13 +181,10 @@ namespace Composer
             playSound.Enabled = isSound || _playing || (isFolder && _currentNode != null);
             stopSound.Enabled = _playing;
 
-            if (!isFolder)
-            {
-                if (e.Node == _currentNode && _playing)
-                    playSound.Image = Properties.Resources.pause;
-                else
-                    playSound.Image = Properties.Resources.play;
-            }
+            if ((e.Node == _currentNode || isFolder) && _playing && !_paused)
+                playSound.Image = Properties.Resources.pause;
+            else
+                playSound.Image = Properties.Resources.play;
         }
 
         private void extractFile_Click(object sender, EventArgs e)
@@ -755,6 +760,7 @@ namespace Composer
 
         private void volumeSlider_ValueChanged(object sender, EventArgs e)
         {
+            Properties.Settings.Default.Volume = volumeSlider.Value;
             if (_currentChannel != null)
                 _currentChannel.setVolume(GetCurrentVolume());
         }

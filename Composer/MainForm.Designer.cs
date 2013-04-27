@@ -308,6 +308,7 @@
             this.MinimumSize = new System.Drawing.Size(564, 405);
             this.Name = "MainForm";
             this.Text = "Composer - Halo 4 Audio Extractor";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.controls.ResumeLayout(false);
             this.controls.PerformLayout();
