@@ -208,7 +208,7 @@
             this.soundPosition.Size = new System.Drawing.Size(356, 45);
             this.soundPosition.TabIndex = 12;
             this.soundPosition.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.soundPosition.ValueChanged += new System.EventHandler(this.soundPosition_ValueChanged);
+            this.soundPosition.Scroll += new System.EventHandler(this.soundPosition_Scroll);
             // 
             // volumeSlider
             // 

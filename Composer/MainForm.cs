@@ -228,7 +228,7 @@ namespace Composer
                     {
                         case SoundFormat.XWMA:
                             {
-                                if (!File.Exists("Helpers/xWMAEncode.exe"))
+                                if (!CheckXWMAEncode())
                                 {
                                     MessageBox.Show("Composer has detected that the file you want to extract is an xWMA audio file.\n\nIn order to decode files of this type, you must get the \"xWMAEncode.exe\" utility from the Microsoft DirectX SDK and place it into the \"Helpers\" folder. The utility cannot be distributed along with Composer for legal reasons.\n\nSee the README.txt file for more information.", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
                                     return;
@@ -272,6 +272,11 @@ namespace Composer
             {
                 MessageBox.Show(ex.Message, _defaultTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private static bool CheckXWMAEncode()
+        {
+            return File.Exists("Helpers/xWMAEncode.exe");
         }
 
         private void extractAll_Click(object sender, EventArgs e)
@@ -626,7 +631,7 @@ namespace Composer
             switch (info.Format)
             {
                 case SoundFormat.XWMA:
-                    if (!File.Exists("Helpers/xWMAEncode.exe"))
+                    if (!CheckXWMAEncode())
                         return;
 
                     if (compressXwma)
@@ -712,6 +717,12 @@ namespace Composer
             SoundFileInfo info = GetSoundInfo(node);
             if (info == null)
                 return;
+
+            if (info.Format == SoundFormat.XWMA && !CheckXWMAEncode())
+            {
+                MessageBox.Show("Composer has detected that the file you want to play is an xWMA audio file.\n\nIn order to decode files of this type, you must get the \"xWMAEncode.exe\" utility from the Microsoft DirectX SDK and place it into the \"Helpers\" folder. The utility cannot be distributed along with Composer for legal reasons.\n\nSee the README.txt file for more information.", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             // Extract the sound to a temporary file
             RIFX rifx = ReadRIFX(info);
@@ -803,15 +814,15 @@ namespace Composer
             _fmod.update();
         }
 
-        private void soundPosition_ValueChanged(object sender, EventArgs e)
-        {
-            if (soundPosition.Capture && _currentChannel != null)
-                _currentChannel.setPosition((uint)soundPosition.Value, FMOD.TIMEUNIT.MS);
-        }
-
         private static string FormatTime(uint ms)
         {
             return string.Format("{0}:{1:d2}.{2:d3}", ms / 1000 / 60, ms / 1000 % 60, ms % 1000);
+        }
+
+        private void soundPosition_Scroll(object sender, EventArgs e)
+        {
+            if (_currentChannel != null)
+                _currentChannel.setPosition((uint)soundPosition.Value, FMOD.TIMEUNIT.MS);
         }
     }
 }
