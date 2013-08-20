@@ -17,13 +17,10 @@ namespace Composer
     public partial class MainForm : Form
     {
         private string _defaultTitle;
-        private EndianReader _soundbankReader = null;
-        private EndianReader _soundstreamReader = null;
-        private SoundPack _soundbankPack = null;
-        private SoundPack _soundstreamPack = null;
         private NameLookup _soundNames = null;
         private WwiseObjectCollection _wwiseObjects = new WwiseObjectCollection();
         private TreeViewBuilder _treeBuilder = null;
+        private List<SoundPackInfo> _packs = new List<SoundPackInfo>();
         private List<SoundBank> _soundbanks = null;
         private List<SoundFileInfo> _soundsFound = new List<SoundFileInfo>();
         private int _filesProcessed = 0;
@@ -42,6 +39,18 @@ namespace Composer
 
         private const int ObjectLoadProgressWeight = 80;
         private const int EventLoadProgressWeight = 20;
+
+        private class SoundPackInfo
+        {
+            public string Name;
+            public EndianReader Reader;
+            public SoundPack Pack;
+
+            public override string ToString()
+            {
+                return Name;
+            }
+        }
 
         private class SoundFileInfo
         {
@@ -119,43 +128,9 @@ namespace Composer
             FMODAssert(_fmod.init(32, FMOD.INITFLAGS.NORMAL, IntPtr.Zero));
         }
 
-        private void openSoundbank_Click(object sender, EventArgs e)
-        {
-            string path = AskForPackFile("soundbank.pck");
-            if (path != null)
-            {
-                LoadPackFile(path, soundbankPath, ref _soundbankReader, ref _soundbankPack);
-                if (_soundbankPack != null && _soundstreamPack != null)
-                    BuildFileTree();
-            }
-        }
-
-        private void openSoundstream_Click(object sender, EventArgs e)
-        {
-            string path = AskForPackFile("soundstream.pck");
-            if (path != null)
-            {
-                LoadPackFile(path, soundstreamPath, ref _soundstreamReader, ref _soundstreamPack);
-                if (_soundbankPack != null && _soundstreamPack != null)
-                    BuildFileTree();
-            }
-        }
-
         private void loadFromFolder_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.Description = "Select the folder to load soundbank.pck and soundstream.pck from. This is sound\\English(US) in Halo 4's extracted ISO.";
-            fbd.ShowNewFolderButton = false;
-            fbd.SelectedPath = Properties.Settings.Default.LastImportDir;
-            if (fbd.ShowDialog() == DialogResult.OK)
-            {
-                LoadPackFile(Path.Combine(fbd.SelectedPath, "soundbank.pck"), soundbankPath, ref _soundbankReader, ref _soundbankPack);
-                LoadPackFile(Path.Combine(fbd.SelectedPath, "soundstream.pck"), soundstreamPath, ref _soundstreamReader, ref _soundstreamPack);
-                Properties.Settings.Default.LastImportDir = fbd.SelectedPath;
-
-                if (_soundbankPack != null && _soundstreamPack != null)
-                    BuildFileTree();
-            }
+            
         }
 
         private void fileTree_AfterSelect(object sender, TreeViewEventArgs e)
@@ -309,16 +284,6 @@ namespace Composer
                 playSound_Click(sender, e);
         }
 
-        private string AskForPackFile(string name)
-        {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Title = "Open " + name;
-            ofd.Filter = "Wwise Sound Packs|*.pck|All Files|*.*";
-            if (ofd.ShowDialog() == DialogResult.OK)
-                return ofd.FileName;
-            return null;
-        }
-
         /// <summary>
         /// Shows a FolderBrowserDialog, prompting the user for a directory to extract a group of files to.
         /// </summary>
@@ -353,15 +318,28 @@ namespace Composer
             return null;
         }
 
-        private void LoadPackFile(string path, TextBox pathBox, ref EndianReader reader, ref SoundPack pack)
+        private SoundPackInfo LoadPackFile(string path)
         {
-            if (reader != null)
-                reader.Close();
-
             // Load the sound pack
-            reader = new EndianReader(File.OpenRead(path), Endian.BigEndian);
-            pack = new SoundPack(reader);
-            pathBox.Text = path;
+            SoundPackInfo result = new SoundPackInfo();
+            result.Name = Path.GetFileName(path);
+            result.Reader = new EndianReader(File.OpenRead(path), Endian.BigEndian);
+            result.Pack = new SoundPack(result.Reader);
+            return result;
+        }
+
+        private void LoadPackFiles(IEnumerable<string> paths)
+        {
+            bool empty = true;
+            foreach (string path in paths)
+            {
+                SoundPackInfo info = LoadPackFile(path);
+                _packs.Add(info);
+                packList.Items.Add(info);
+                empty = false;
+            }
+            if (!empty)
+                BuildFileTree();
         }
 
         /// <summary>
@@ -378,9 +356,7 @@ namespace Composer
             // Compute totals for the progress bar
             _filesProcessed = 0;
             _totalSounds = 0;
-            _totalFiles = 0;
-            _totalFiles += GetTotalFiles(_soundbankPack);
-            _totalFiles += GetTotalFiles(_soundstreamPack);
+            _totalFiles = _packs.Sum((p) => GetTotalFiles(p.Pack));
             progressBar.Value = 0;
             
             // Load the banks in a separate thread
@@ -402,8 +378,8 @@ namespace Composer
 
             // Load everything from the packs into the scanner
             _soundbanks = new List<SoundBank>();
-            LoadObjects(_soundbankPack, _soundbankReader, scanner, worker);
-            LoadObjects(_soundstreamPack, _soundstreamReader, scanner, worker);
+            foreach (SoundPackInfo pack in _packs)
+                LoadObjects(pack.Pack, pack.Reader, scanner, worker);
 
             // Clear the TreeView and scan everything
             // The event handlers attached above are responsible for adding nodes to the tree
@@ -451,13 +427,23 @@ namespace Composer
         {
             // Find the sound bank's pack file so we can determine the offset of the audio data
             uint bankId = e.File.ParentBank.ID;
-            SoundPackFile packFile = _soundbankPack.FindFileByID(bankId);
+            SoundPackInfo packInfo = null;
+            SoundPackFile packFile = null;
+            foreach (SoundPackInfo pack in _packs)
+            {
+                packFile = pack.Pack.FindFileByID(bankId);
+                if (packFile != null)
+                {
+                    packInfo = pack;
+                    break;
+                }
+            }
             if (packFile == null)
                 return;
 
             // Calculate the offset of the audio data and add it
             int offset = packFile.Offset + e.File.ParentBank.DataOffset + e.File.Offset;
-            AddSound(_soundbankReader, offset, e.File.Size, e.File.ID);
+            AddSound(packInfo.Reader, offset, e.File.Size, e.File.ID);
         }
 
         /// <summary>
@@ -465,11 +451,15 @@ namespace Composer
         /// </summary>
         private void FoundSoundPackFile(object sender, SoundFileEventArgs<SoundPackFile> e)
         {
-            // Make sure the file isn't in soundbank for some reason
-            EndianReader reader = _soundstreamReader;
-            if (_soundbankPack.FindFileByID(e.File.ID) != null)
-                reader = _soundbankReader;
-
+            EndianReader reader = null;
+            foreach (SoundPackInfo pack in _packs)
+            {
+                if (pack.Pack.FindFileByID(e.File.ID) != null)
+                {
+                    reader = pack.Reader;
+                    break;
+                }
+            }
             AddSound(reader, e.File.Offset, e.File.Size, e.File.ID);
         }
 
@@ -823,6 +813,47 @@ namespace Composer
         {
             if (soundPosition.Capture && _currentChannel != null)
                 _currentChannel.setPosition((uint)soundPosition.Value, FMOD.TIMEUNIT.MS);
+        }
+
+        private void browsePack_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Title = "Open Sound Packs";
+            ofd.Filter = "Wwise Sound Packs|*.pck|All Files|*.*";
+            ofd.Multiselect = true;
+            if (ofd.ShowDialog() == DialogResult.OK)
+                LoadPackFiles(ofd.FileNames);
+        }
+
+        private void unloadPacks_Click(object sender, EventArgs e)
+        {
+            stopSound_Click(null, e);
+            playSound.Enabled = false;
+            foreach (SoundPackInfo pack in _packs)
+                pack.Reader.Close();
+
+            _packs.Clear();
+            _soundbanks = null;
+            _wwiseObjects.Clear();
+            packList.Items.Clear();
+            fileTree.Nodes.Clear();
+            controls.Enabled = false;
+            loadingControls.Enabled = true;
+            statusLabel.Text = "Ready";
+        }
+
+        private void importPacks_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = "Select the folder to import sound pack files (.pck) from. This is sound\\English(US) in Halo 4's extracted ISO.";
+            fbd.ShowNewFolderButton = false;
+            fbd.SelectedPath = Properties.Settings.Default.LastImportDir;
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                Properties.Settings.Default.LastImportDir = fbd.SelectedPath;
+                IEnumerable<string> packFiles = Directory.EnumerateFiles(fbd.SelectedPath, "*.pck");
+                LoadPackFiles(packFiles);
+            }
         }
     }
 }

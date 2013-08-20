@@ -25,7 +25,7 @@ namespace Composer.Wwise
         {
             ReadHeader(reader);
             ReadFolderTable(reader);
-            ReadFileTable(reader);
+            ReadFiles(reader);
         }
 
         /// <summary>
@@ -113,20 +113,22 @@ namespace Composer.Wwise
             }
         }
 
-        private void ReadFileTable(EndianReader reader)
+        private void ReadFiles(EndianReader reader)
         {
             // The file table comes after the folder list and padding
             reader.SeekTo(FolderListStart + _folderListSize);
 
-            // The file count is the first non-padding value
-            int fileCount = 0;
-            do
-            {
-                if (reader.EOF)
-                    throw new InvalidOperationException("The pack is missing a file table");
-                fileCount = reader.ReadInt32();
-            }
-            while (fileCount == 0);
+            // Align 4
+            reader.SeekTo((reader.Position + 3) & ~3);
+
+            // TODO: Load these into separate lists or something to make stuff easier
+            ReadFileTable(reader); // Sound banks
+            ReadFileTable(reader); // Global files
+        }
+
+        private void ReadFileTable(EndianReader reader)
+        {
+            int fileCount = reader.ReadInt32();
 
             // Read each file and sort it into its folder
             for (int i = 0; i < fileCount; i++)

@@ -35,6 +35,14 @@ namespace Composer.Wwise
         }
 
         /// <summary>
+        /// Removes all objects from the collection.
+        /// </summary>
+        public void Clear()
+        {
+            _objects.Clear();
+        }
+
+        /// <summary>
         /// Finds a Wwise object by ID number and then passes it to an IWwiseObjectVisitor.
         /// </summary>
         /// <param name="id">The ID number of the object to find.</param>
