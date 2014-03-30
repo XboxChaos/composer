@@ -17,8 +17,7 @@ whatsoever. See the Helpers.txt file for more information.
 
 Also, I HIGHLY recommend that you do not redistribute the audio files produced
 by Composer or any of its helper utilities. Even if a file has been converted,
-it is still the intellectual property of 343 Industries and should be for
-personal use only.
+it is still the property of 343 Industries and should be for personal use only.
 
 Composer's source code is available for free on GitHub:
 <https://github.com/amd7/composer>.

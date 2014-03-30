@@ -12,40 +12,49 @@ namespace Composer.Wwise
     /// </summary>
     public class SoundPackFile : IWwiseObject
     {
-        public SoundPackFile(SoundPack parent, IReader reader)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SoundPackFile"/> class.
+        /// </summary>
+        /// <param name="reader">The reader to read the file from.</param>
+        public SoundPackFile(SoundPackFileType type, IReader reader)
         {
-            ParentPack = parent;
+            Type = type;
             ID = reader.ReadUInt32();
-            reader.Skip(4); // Flags?
+            Flags = reader.ReadUInt32();
             Size = reader.ReadInt32();
             Offset = reader.ReadInt32();
-            FolderID = reader.ReadInt32();
+            FolderIndex = reader.ReadInt32();
         }
 
         /// <summary>
-        /// The SoundPack that the file belongs to.
+        /// Gets the file's type.
         /// </summary>
-        public SoundPack ParentPack { get; private set; }
+        public SoundPackFileType Type { get; private set; }
 
         /// <summary>
-        /// The file's ID.
+        /// Gets the file's ID.
         /// </summary>
         public uint ID { get; private set; }
 
         /// <summary>
-        /// The file's size in bytes.
+        /// Gets flags for the file.
+        /// </summary>
+        public uint Flags { get; private set; }
+
+        /// <summary>
+        /// Gets the file's size in bytes.
         /// </summary>
         public int Size { get; private set; }
 
         /// <summary>
-        /// The offset of the file within the pack.
+        /// Gets the offset of the file within the pack.
         /// </summary>
         public int Offset { get; private set; }
 
         /// <summary>
-        /// The ID of the folder that the sound belongs to.
+        /// Gets the index of the folder that the sound belongs to.
         /// </summary>
-        public int FolderID { get; private set; }
+        public int FolderIndex { get; private set; }
 
         /// <summary>
         /// Calls the Visit(SoundPackFile) method on an IWwiseObjectVisitor.

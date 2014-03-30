@@ -18,7 +18,6 @@ namespace Composer
     {
         private string _defaultTitle;
         private NameLookup _soundNames = null;
-        private WwiseObjectCollection _wwiseObjects = new WwiseObjectCollection();
         private TreeViewBuilder _treeBuilder = null;
         private List<SoundPackInfo> _packs = new List<SoundPackInfo>();
         private List<SoundBank> _soundbanks = null;
@@ -834,7 +833,6 @@ namespace Composer
 
             _packs.Clear();
             _soundbanks = null;
-            _wwiseObjects.Clear();
             packList.Items.Clear();
             fileTree.Nodes.Clear();
             controls.Enabled = false;

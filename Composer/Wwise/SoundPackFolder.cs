@@ -11,6 +11,10 @@ namespace Composer.Wwise
     /// </summary>
     public class SoundPackFolder
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SoundPackFolder"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
         public SoundPackFolder(string name)
         {
             Name = name;
@@ -27,19 +31,21 @@ namespace Composer.Wwise
         }
 
         /// <summary>
-        /// The folder's name.
+        /// Gets the folder's name.
         /// </summary>
         public string Name { get; private set; }
 
         /// <summary>
-        /// The files in the folder.
+        /// Gets a list of files in the folder.
         /// </summary>
         public IList<SoundPackFile> Files { get; private set; }
 
         /// <summary>
-        /// Returns the folder's name.
+        /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>
-        /// <returns>The folder's name.</returns>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
         public override string ToString()
         {
             return Name;

@@ -11,6 +11,13 @@ namespace Composer.Wwise
     /// </summary>
     public class SoundBankFile : IWwiseObject
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SoundBankFile"/> class.
+        /// </summary>
+        /// <param name="parent">The parent bank.</param>
+        /// <param name="id">The ID.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="size">The size.</param>
         public SoundBankFile(SoundBank parent, uint id, int offset, int size)
         {
             ParentBank = parent;
@@ -19,6 +26,11 @@ namespace Composer.Wwise
             Size = size;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SoundBankFile"/> class.
+        /// </summary>
+        /// <param name="parent">The parent bank.</param>
+        /// <param name="reader">The stream to read from.</param>
         public SoundBankFile(SoundBank parent, IReader reader)
         {
             ParentBank = parent;
@@ -28,22 +40,22 @@ namespace Composer.Wwise
         }
 
         /// <summary>
-        /// The SoundBank that the file belongs to.
+        /// Gets the file's parent bank.
         /// </summary>
         public SoundBank ParentBank { get; private set; }
 
         /// <summary>
-        /// The file's ID.
+        /// Gets the file's ID.
         /// </summary>
         public uint ID { get; private set; }
 
         /// <summary>
-        /// The offset of the file within the sound bank's data area.
+        /// Gets the offset of the file within the sound bank's data area.
         /// </summary>
         public int Offset { get; private set; }
 
         /// <summary>
-        /// The file's size in bytes.
+        /// Gets the file's size in bytes.
         /// </summary>
         public int Size { get; private set; }
 

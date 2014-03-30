@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Composer.IO;
+using Composer.Util;
 
 namespace Composer.Wwise
 {
@@ -61,18 +62,18 @@ namespace Composer.Wwise
         }
 
         /// <summary>
-        /// The sound bank's ID.
+        /// Gets the sound bank's ID.
         /// </summary>
         public uint ID { get; private set; }
 
         /// <summary>
-        /// The offset of the data area from the start of the sound bank.
+        /// Gets the offset of the data area from the start of the sound bank.
         /// Add this to a SoundBankFile's Offset to get the file's offset within the bank.
         /// </summary>
         public int DataOffset { get; private set; }
 
         /// <summary>
-        /// The files in the sound bank, not stored in any particular order.
+        /// Gets a collection of the files in the bank.
         /// </summary>
         public IEnumerable<SoundBankFile> Files
         {
@@ -80,7 +81,7 @@ namespace Composer.Wwise
         }
 
         /// <summary>
-        /// The events in the sound bank, not stored in any particular order.
+        /// Gets a collection of the events in the bank.
         /// </summary>
         public IEnumerable<SoundBankEvent> Events
         {
@@ -88,7 +89,7 @@ namespace Composer.Wwise
         }
 
         /// <summary>
-        /// The Wwise objects stored in the sound bank.
+        /// Gets a colection of the objects stored in the bank.
         /// </summary>
         public WwiseObjectCollection Objects
         {
@@ -114,24 +115,22 @@ namespace Composer.Wwise
                 offset += 8;
 
                 // Process the block based upon its magic value
-                switch (blockMagic)
+                if (blockMagic == BlockMagic.BankHeader)
                 {
-                    case BlockMagic.BKHD:
-                        ReadHeader(reader);
-                        break;
-
-                    case BlockMagic.DIDX:
-                        ReadFiles(reader, blockSize);
-                        break;
-
-                    case BlockMagic.DATA:
-                        // Just store the offset of this block's contents to the DataOffset field
-                        DataOffset = (int)(offset - startOffset);
-                        break;
-
-                    case BlockMagic.HIRC:
-                        ReadObjects(reader);
-                        break;
+                    ReadHeader(reader);
+                }
+                else if (blockMagic == BlockMagic.DataIndex)
+                {
+                    ReadFiles(reader, blockSize);
+                }
+                else if (blockMagic == BlockMagic.Data)
+                {
+                    // Just store the offset of this block's contents to the DataOffset field
+                    DataOffset = (int)(offset - startOffset);
+                }
+                else if (blockMagic == BlockMagic.Objects)
+                {
+                    ReadObjects(reader);
                 }
 
                 // Skip to the next block
@@ -234,7 +233,7 @@ namespace Composer.Wwise
         }
 
         /// <summary>
-        /// HIRC object types.
+        /// Wwise object types.
         /// </summary>
         private enum ObjectType : sbyte
         {
@@ -264,14 +263,14 @@ namespace Composer.Wwise
         /// </summary>
         private static class BlockMagic
         {
-            public const int BKHD = 0x424B4844; // Bank Header
-            public const int DIDX = 0x44494458; // Data Index
-            public const int DATA = 0x44415441; // Data
-            public const int ENVS = 0x454E5653; // Environments
-            public const int FXPR = 0x46585052; // Effects production
-            public const int HIRC = 0x48495243; // Wwise objects
-            public const int STID = 0x53544944; // Bank IDs
-            public const int STMG = 0x53544D47; // Project settings
+            public static readonly int BankHeader =        CharConstant.FromString("BKHD");
+            public static readonly int DataIndex =         CharConstant.FromString("DIDX");
+            public static readonly int Data =              CharConstant.FromString("DATA");
+            public static readonly int Environments =      CharConstant.FromString("ENVS");
+            public static readonly int EffectsProduction = CharConstant.FromString("FXPR");
+            public static readonly int Objects =           CharConstant.FromString("HIRC");
+            public static readonly int BankIDs =           CharConstant.FromString("STID");
+            public static readonly int Settings =          CharConstant.FromString("STMG");
         }
     }
 }

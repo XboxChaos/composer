@@ -4,9 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Composer.IO;
+using Composer.Util;
 
 namespace Composer.Wwise
 {
+    /// <summary>
+    /// A Wwise sound pack file.
+    /// </summary>
     public class SoundPack
     {
         private int _folderListSize;
@@ -14,8 +18,8 @@ namespace Composer.Wwise
         private Dictionary<uint, SoundPackFile> _filesById = new Dictionary<uint, SoundPackFile>();
         private WwiseObjectCollection _objects = new WwiseObjectCollection();
 
-        const uint HeaderMagic = 0x414B504B; // 'AKPK'
-        const int FolderListStart = 0x1C; // File offset of the folder list
+        private static readonly int HeaderMagic = CharConstant.FromString("AKPK");
+        private const int FolderListStartOffset = 0x1C;
 
         /// <summary>
         /// Loads a SoundPack from a stream.
@@ -79,17 +83,20 @@ namespace Composer.Wwise
             if (reader.ReadUInt32() != HeaderMagic)
                 throw new InvalidOperationException("Invalid sound pack magic");
 
-            reader.Skip(4 * 2); // Skip two unknown uint32s
+            reader.Skip(4 + 4); // header size
+                                // unknown
 
             // Read the size of the folder list (needed to find the start of the file table)
             _folderListSize = reader.ReadInt32();
+
+            reader.Skip(4 + 4 + 4); // int32 bank file table size
+                                    // int32 sound file table size
+                                    // int32 unknown
         }
 
         private void ReadFolderTable(EndianReader reader)
         {
-            // Seek to the beginning of the folder list
             reader.Endianness = Endian.BigEndian;
-            reader.SeekTo(FolderListStart);
 
             // Read the number of folders
             int folderCount = reader.ReadInt32();
@@ -106,39 +113,33 @@ namespace Composer.Wwise
             // Read the folder names and create wrappers for them
             foreach (KeyValuePair<int, int> offset in folderOffsets)
             {
-                reader.SeekTo(FolderListStart + offset.Key); // The name's offset is relative to the start of the folder list
+                reader.SeekTo(FolderListStartOffset + offset.Key); // The name's offset is relative to the start of the folder list
                 string name = reader.ReadAscii();
-
                 _foldersById[offset.Value] = new SoundPackFolder(name);
             }
         }
 
         private void ReadFiles(EndianReader reader)
         {
-            // The file table comes after the folder list and padding
-            reader.SeekTo(FolderListStart + _folderListSize);
-
-            // Align 4
-            reader.SeekTo((reader.Position + 3) & ~3);
-
-            // TODO: Load these into separate lists or something to make stuff easier
-            ReadFileTable(reader); // Sound banks
-            ReadFileTable(reader); // Global files
+            // The file tables come after the folder list and padding
+            reader.SeekTo(FolderListStartOffset + _folderListSize);
+            ReadFileTable(SoundPackFileType.SoundBank, reader);
+            ReadFileTable(SoundPackFileType.SoundFile, reader);
         }
 
-        private void ReadFileTable(EndianReader reader)
+        private void ReadFileTable(SoundPackFileType type, EndianReader reader)
         {
             int fileCount = reader.ReadInt32();
 
             // Read each file and sort it into its folder
             for (int i = 0; i < fileCount; i++)
             {
-                SoundPackFile file = new SoundPackFile(this, reader);
+                SoundPackFile file = new SoundPackFile(type, reader);
 
                 // Put the file into its parent folder
-                SoundPackFolder folder = FindFolderByID(file.FolderID);
-                if (folder != null)
-                    folder.AddFile(file);
+                SoundPackFolder folder = FindFolderByID(file.FolderIndex);
+				if (folder != null)
+					folder.AddFile(file);
 
                 // Associate its ID
                 _filesById[file.ID] = file;
