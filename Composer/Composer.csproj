@@ -171,7 +171,6 @@
     <None Include="Images\play.png" />
     <Content Include="Images\sound.png" />
     <None Include="Images\stop.png" />
-    <Content Include="README.txt" />
     <Content Include="soundnames.lst">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
