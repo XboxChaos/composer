@@ -1,7 +1,7 @@
 Composer
 ========
 
-Composer is a utility which can extract audio files Halo 4 and invoke several helper utilities to automatically convert them to common formats.
+Composer is a utility which can extract audio files from Halo 4 and invoke several helper utilities to automatically convert them to common formats.
 
 Several "helper" programs are included with Composer that deal with converting the files once they are extracted. In fact, without them, Composer is just a simple PCK extractor. I do not take any credit for those programs whatsoever. See the Helpers.txt file for more information.
 
